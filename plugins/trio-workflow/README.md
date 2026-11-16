@@ -53,7 +53,7 @@ The repository is a local marketplace for Claude Code and for Codex.
 **Claude Code**:
 
 ```bash
-claude plugin marketplace add D:\Projects\trio-workflow
+claude plugin marketplace add <path to your trio-workflow checkout>
 ```
 
 ```bash
@@ -67,7 +67,7 @@ You can also run `/plugin` inside Claude Code and add the marketplace there.
 ```toml
 [marketplaces.trio-local]
 source_type = "local"
-source = 'D:\Projects\trio-workflow'
+source = '<path to your trio-workflow checkout>'
 
 [plugins."trio-workflow@trio-local"]
 enabled = true
