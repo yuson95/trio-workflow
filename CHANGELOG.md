@@ -1,5 +1,10 @@
 # Changelog
 
+## Docs (2026-11-16)
+
+- Added the workflow plate, a swimlane flowchart of one plan end to end, in English and Chinese, as PNG and PDF.
+- `docs/workflow/draw_workflow.py` redraws the plate and fails when a caption overflows its cell.
+
 ## 0.3.0 (2026-11-16)
 
 - Added `ui-acceptance.md`: prototypes before code for review-gated requirements, a page × state screenshot matrix, a visual review before the operator walks through, and walkthrough findings classed and routed into structure.

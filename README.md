@@ -2,6 +2,17 @@
 
 This repository holds the **trio-workflow** plugin, a delivery workflow for coding agents with an operator, a reviewer and a builder. The usage guide is [plugins/trio-workflow/README.md](plugins/trio-workflow/README.md).
 
+## The workflow at a glance
+
+![trio workflow plate](docs/workflow/trio-workflow.png)
+
+Who acts (lanes) against when (phases), with the files every step writes and the rules every step keeps.
+
+- English: [PNG](docs/workflow/trio-workflow.png) · [PDF](docs/workflow/trio-workflow.pdf)
+- 中文: [PNG](docs/workflow/trio-workflow_zh.png) · [PDF](docs/workflow/trio-workflow_zh.pdf)
+
+The plates are drawn by [docs/workflow/draw_workflow.py](docs/workflow/draw_workflow.py), which needs matplotlib. It fails when a caption overflows its cell, so redraw and commit the plates whenever the workflow changes. The visual language is described in [docs/workflow/DESIGN_PHILOSOPHY.md](docs/workflow/DESIGN_PHILOSOPHY.md).
+
 ## Layout
 
 | Path | Content |
@@ -11,6 +22,7 @@ This repository holds the **trio-workflow** plugin, a delivery workflow for codi
 | `.agents/plugins/marketplace.json` | Local Codex marketplace `trio-local` |
 | `tools/install_local.py` | Copy mode: install, check or remove the skill in `~/.claude`, `~/.codex` and `~/.cursor` |
 | `tests/` | Behavior tests for the scripts, with sample plans |
+| `docs/workflow/` | The workflow plate in English and Chinese (PNG, PDF) and the script that draws it |
 | `CHANGELOG.md` | Versions |
 
 ## Development
