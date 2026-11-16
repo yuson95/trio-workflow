@@ -1,7 +1,17 @@
 # trio-workflow (repository)
 
-> **For domain experts who are not programmers or product managers, but want to build their own software with AI agents.**
-> 写给有其他领域专业背景、不是程序员也不是产品经理、却想用 AI agent 开发自己应用的人。
+> **For anyone who builds software with AI agents but cannot cover every role alone.**
+> 写给用 AI agent 开发软件、却无法独自包揽所有角色的人。
+>
+> That includes:
+>
+> - domain experts who do not code;
+> - developers without design or product experience;
+> - designers who do not code;
+> - people who would rather not read every line themselves;
+> - solo builders and short-staffed teams.
+>
+> 例如：不写代码的领域专家，懂代码但不懂设计或产品的开发者，懂设计但不懂代码的设计师，不想亲自逐行看代码的人，以及独立开发者和人手不够的团队。
 
 This repository holds the **trio-workflow** plugin, a delivery workflow with three roles:
 
@@ -13,7 +23,15 @@ Plan-level **stops** and batch-level **pull requests** work together: PRs with C
 
 ## Who it's for
 
-trio-workflow is built for **people who are experts in another field** (engineering, energy, finance, medicine, research, consulting) and want AI agents to build software for that field, without being professional programmers or product managers. You know what a correct result looks like; trio supplies the parts of software practice you do not have time to learn:
+trio-workflow is for **anyone who cannot, or would rather not, cover every role of a software project alone**: planning, design, coding, review and testing.
+
+- **Domain experts** (engineering, energy, finance, medicine, research, consulting) who know what a correct result looks like but do not code.
+- **Developers** who code well but have no designer or product manager.
+- **Designers** with a clear picture of the product but no coding skills.
+- **People who would rather not review code line by line.**
+- **Solo builders and short-staffed teams** who need the missing roles filled.
+
+trio fills the roles you lack with agents that check each other, and keeps you in charge of what gets built:
 
 | You may not have | trio provides |
 | --- | --- |
