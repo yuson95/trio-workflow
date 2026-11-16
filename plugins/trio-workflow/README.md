@@ -48,7 +48,17 @@ Pick one mode per tool. Installing both ways makes the tool see the skill twice.
 
 ### Plugin mode
 
-The repository is a local marketplace for Claude Code and for Codex.
+The repository is a marketplace for Claude Code and for Codex. Get it first:
+
+```bash
+git clone https://github.com/yuson95/trio-workflow.git
+```
+
+Claude Code can also add the marketplace straight from GitHub:
+
+```bash
+claude plugin marketplace add yuson95/trio-workflow
+```
 
 **Claude Code**:
 
@@ -95,7 +105,7 @@ Put the absolute path of `skills/trio-workflow/SKILL.md` into the agent's system
 
 ## Origin and credits
 
-The workflow comes from running the EnergyCompass project in November 2026: a reviewer agent and a builder agent from different vendors, plans with stops, operator walkthroughs, check tiers, and token rules.
+The workflow comes from building a private energy-consulting tool in November 2026: a reviewer agent and a builder agent from different vendors, plans with stops, operator walkthroughs, check tiers, and token rules.
 
 Several practices are adapted from pstack by poteto (MIT licence, <https://github.com/cursor/plugins/tree/main/pstack>):
 
@@ -112,3 +122,7 @@ Several practices are adapted from pstack by poteto (MIT licence, <https://githu
 - the decision trail.
 
 The wording here is our own. pstack itself is not bundled; install it from its own source.
+
+## License
+
+MIT. See [LICENSE](LICENSE) in the repository root.

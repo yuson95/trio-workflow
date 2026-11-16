@@ -111,4 +111,6 @@ If you use copy mode, then run:
 python tools/install_local.py install
 ```
 
-The repository has no licence yet: it is private and all rights are reserved until a licence is chosen.
+## License
+
+MIT, see [LICENSE](LICENSE). Practices adapted from pstack are credited in the plugin README; pstack is MIT-licensed as well.

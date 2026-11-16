@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.4.1 (2026-11-16)
+
+- Released under the MIT License; the repository is public at https://github.com/yuson95/trio-workflow.
+- Manifests list the license, homepage and repository; the plugin README shows how to clone the repository or add the marketplace from GitHub.
+
 ## 0.4.0 (2026-11-16)
 
 - Added `prs.md` and the `Delivery: local / pr` setting. In `pr` mode, every batch is a pull request into `wip/<plan>` with CI and a verifier's verdict. Stops stay the plan-level gates for independent review and the operator's decisions, and a plan PR carries `wip/<plan>` into `main` after the final stop.
