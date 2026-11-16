@@ -1,0 +1,20 @@
+{
+  "name": "trio-local",
+  "interface": {
+    "displayName": "Trio (local)"
+  },
+  "plugins": [
+    {
+      "name": "trio-workflow",
+      "source": {
+        "source": "local",
+        "path": "./plugins/trio-workflow"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Developer Tools"
+    }
+  ]
+}

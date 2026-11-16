@@ -1,0 +1,31 @@
+{
+  "name": "trio-workflow",
+  "version": "0.2.0",
+  "description": "Operator + reviewer + builder delivery workflow for coding agents: plans with stops, independent verdicts bound to a commit, evidence-based batches, and an optional pstack inner layer. Works with Claude Code, Codex, Cursor and other agents.",
+  "author": {
+    "name": "yushengchen"
+  },
+  "keywords": [
+    "workflow",
+    "agents",
+    "review",
+    "planning",
+    "multi-agent",
+    "pstack",
+    "stops",
+    "verification"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Trio Workflow",
+    "shortDescription": "Plans, stops and independent review for agent teams",
+    "longDescription": "Operator + reviewer + builder delivery workflow for coding agents: plans with stops, independent verdicts bound to a commit, evidence-based batches, and an optional pstack inner layer. Works with Claude Code, Codex, Cursor and other agents.",
+    "category": "Developer Tools",
+    "developerName": "yushengchen",
+    "defaultPrompt": [
+      "Set up the trio workflow for this repository.",
+      "审查方案三停点1",
+      "继续执行方案三"
+    ]
+  }
+}

@@ -1,0 +1,5 @@
+interface:
+  display_name: "Trio Workflow"
+  short_description: "Operator + reviewer + builder delivery workflow with stops, independent verdicts, evidence and an optional pstack inner layer."
+policy:
+  allow_implicit_invocation: true
