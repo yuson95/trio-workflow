@@ -2,6 +2,8 @@
 
 ## Docs (2026-11-16)
 
+- Added "Who it's for" and a quickstart to the README, plus step-by-step guides for non-programmers in English (`docs/QUICKSTART.md`) and Chinese (`docs/QUICKSTART_zh.md`).
+- Redrew the workflow plate: content-sized cards, stop columns marked, heavier arrows, one-line file row.
 - Added the workflow plate, a swimlane flowchart of one plan end to end, in English and Chinese, as PNG and PDF.
 - `docs/workflow/draw_workflow.py` redraws the plate and fails when a caption overflows its cell.
 
