@@ -43,6 +43,7 @@ Role: Builder. The lead coordinates, integrates and reports, and never writes th
    - A verifier that did not write the code runs the quick check and the batch's tests, and drives the batch's live scenarios.
    - Read the diff and the evidence, not the worker's summary.
    - Then merge into `wip/<plan>`, update the progress file and the decision trail, and start the next batch.
+   - In `pr` delivery mode, all of this happens through one batch PR into `wip/<plan>`: draft PR, CI on every push, the verifier's verdict on the PR, then a squash merge (see [prs.md](prs.md)).
 
    Parallel batches merge in the order they finish. The later batch resolves conflicts, reruns the quick check and records the conflicting files and the resolution in its handoff.
 7. **Handle stalls by cause**: a smaller scope after a context or memory limit; the same kickoff after a dropped connection; a different model after a tool error. After two retries, drop the unit, replan around it and report it at the next stop. Judge a worker by its commits and outputs, not by its status text.

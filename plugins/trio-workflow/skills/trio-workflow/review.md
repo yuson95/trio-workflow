@@ -45,7 +45,8 @@ Run only the quick check when the code is identical to `main`. The other steps s
    - the stop material, the progress file and the batch handoffs for this stop;
    - every earlier `RESULT` of this plan, so open items carry over;
    - this line's constraints and the operator's direct requests in `00_FLOW`;
-   - the candidate's diff against its base: `--stat` first, then single files.
+   - the candidate's diff against its base: `--stat` first, then single files;
+   - in `pr` delivery mode, the batch PRs merged since the last stop, with their verdicts and CI links (see [prs.md](prs.md)).
 2. **Check the material**:
    - every requirement ID has a status;
    - every check reads PASS, FAIL or NOT_RUN;

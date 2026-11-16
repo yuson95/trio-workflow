@@ -1,6 +1,15 @@
 # trio-workflow (repository)
 
-This repository holds the **trio-workflow** plugin, a delivery workflow for coding agents with an operator, a reviewer and a builder. The usage guide is [plugins/trio-workflow/README.md](plugins/trio-workflow/README.md).
+> **For domain experts who are not programmers or product managers, but want to build their own software with AI agents.**
+> 写给有其他领域专业背景、不是程序员也不是产品经理、却想用 AI agent 开发自己应用的人。
+
+This repository holds the **trio-workflow** plugin, a delivery workflow with three roles:
+
+- you, the operator, decide;
+- one agent plans and reviews;
+- another agent builds.
+
+Plan-level **stops** and batch-level **pull requests** work together: PRs with CI guard the code, and stops guard your intent. The usage guide is [plugins/trio-workflow/README.md](plugins/trio-workflow/README.md).
 
 ## Who it's for
 
@@ -37,12 +46,36 @@ New to software projects? Read the step-by-step guide: **[docs/QUICKSTART.md](do
 
 ![trio workflow plate](docs/workflow/trio-workflow.png)
 
-Who acts (lanes) against when (phases), with the files every step writes and the rules every step keeps.
+The plate is drawn as a metro map:
+
+- each role is a line;
+- each action is a station;
+- each stop is an interchange where all three lines meet;
+- during building, the builder's line splits into worker tracks, and each square on them is one batch pull request with CI.
 
 - English: [PNG](docs/workflow/trio-workflow.png) · [PDF](docs/workflow/trio-workflow.pdf)
 - 中文: [PNG](docs/workflow/trio-workflow_zh.png) · [PDF](docs/workflow/trio-workflow_zh.pdf)
 
 The plates are drawn by [docs/workflow/draw_workflow.py](docs/workflow/draw_workflow.py), which needs matplotlib. It fails when a caption overflows its cell, so redraw and commit the plates whenever the workflow changes. The visual language is described in [docs/workflow/DESIGN_PHILOSOPHY.md](docs/workflow/DESIGN_PHILOSOPHY.md).
+
+## About the author
+
+I am **Yusheng Chen (Dr.-Ing.)**, an energy systems engineer and consultant in Berlin. I work on decarbonization and renewable integration for industrial and commercial clients.
+
+- **Education**:
+  - B.Eng. in building services engineering, Tongji University and FH Münster;
+  - M.Sc. in sustainable energy supply, RWTH Aachen;
+  - Dr.-Ing. in renewable energy systems, Technical University of Munich, with a thesis on optimizing biomass heating networks with heat pumps and on-site power generation.
+- **Work**:
+  - energy supply concepts and transformation plans for companies;
+  - earlier, research on heat pumps, combined heat and power and heat storage;
+  - energy management for public buildings;
+  - hydrogen supply-chain studies.
+- **Tools**: energy system modeling and mathematical optimization, with Python and MATLAB as engineering tools. I am not a professional software developer or product manager.
+
+That last point is why trio exists. I built an energy-concept tool for my consulting work with two AI agents from different vendors, one reviewing and one building. trio is the workflow that kept the result correct and the way I wanted it.
+
+My longer profile is at [yuson95.github.io](https://yuson95.github.io); parts of it are out of date.
 
 ## Layout
 

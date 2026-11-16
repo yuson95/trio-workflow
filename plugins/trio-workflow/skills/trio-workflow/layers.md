@@ -88,8 +88,8 @@ The plan tags every requirement with a **type**. The lead copies that type and i
 
 | pstack | Under trio |
 | --- | --- |
-| "Opening a PR" at the end of every playbook | Commit on the batch branch, write the handoff and return. No PR and no push. |
-| Babysit, Shipping, Autopilot-full, Autopilot-stack, Orchestrate | Not used by the builder. Landing follows [merge.md](merge.md), on the operator's words. |
+| "Opening a PR" at the end of every playbook | `local` delivery: commit on the batch branch, write the handoff and return; no PR, no push. `pr` delivery: the playbook's PR becomes the batch PR into `wip/<plan>`, never into `main` ([prs.md](prs.md)). |
+| Babysit, Shipping, Autopilot-full, Autopilot-stack, Orchestrate | In `pr` delivery, Babysit may drive a batch PR to green. The others are not used: landing on `main` follows [merge.md](merge.md), on the operator's words. |
 | Cloud agents and cloud VMs | Only where `0_RULES` allows them. Client data never leaves the machine; only synthetic data goes out. |
 | A swarm with ten live lanes per PR | Size the lanes to trio's check tiers and worker cap. Heavy runs take the lock. |
 | Model slugs per role | Use them only in tools that offer them; otherwise use the tool's default. Keep the verifier on a different model family where possible. |

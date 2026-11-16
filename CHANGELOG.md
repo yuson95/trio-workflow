@@ -1,7 +1,14 @@
 # Changelog
 
+## 0.4.0 (2026-11-16)
+
+- Added `prs.md` and the `Delivery: local / pr` setting. In `pr` mode, every batch is a pull request into `wip/<plan>` with CI and a verifier's verdict. Stops stay the plan-level gates for independent review and the operator's decisions, and a plan PR carries `wip/<plan>` into `main` after the final stop.
+- Bootstrap, builder, review, merge and layers point to PR mode. pstack's "Opening a PR" becomes the batch PR in `pr` mode.
+
 ## Docs (2026-11-16)
 
+- The README opens with the audience, in English and Chinese, and adds an "About the author" section.
+- Redrew the plate as a metro map. Roles are lines, actions are stations, and stops are interchanges. Batch PRs sit on worker tracks. The script now also fails on overlapping labels.
 - Added "Who it's for" and a quickstart to the README, plus step-by-step guides for non-programmers in English (`docs/QUICKSTART.md`) and Chinese (`docs/QUICKSTART_zh.md`).
 - Redrew the workflow plate: content-sized cards, stop columns marked, heavier arrows, one-line file row.
 - Added the workflow plate, a swimlane flowchart of one plan end to end, in English and Chinese, as PNG and PDF.

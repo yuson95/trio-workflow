@@ -11,7 +11,7 @@ Role: Reviewer, or whichever agent the operator authorizes. Act only on the oper
    - the candidate descends from `main`;
    - the main checkout has no uncommitted changes;
    - the pre-merge recheck follows the check tiers in [review.md](review.md).
-4. **Merge**, fast-forward only (`merge --ff-only`). Push only on "合并并推送", then read the result back with `ls-remote`. A command's success message is not proof. Commits and PR text carry no AI attribution lines.
+4. **Merge**, fast-forward only (`merge --ff-only`). In `pr` delivery mode, merge the plan PR instead and read it back as merged (see [prs.md](prs.md)). Push only on "合并并推送", then read the result back with `ls-remote`. A command's success message is not proof. Commits and PR text carry no AI attribution lines.
 5. **Restart the operator's service**:
    - confirm no computation is running;
    - restart it with the project's method;

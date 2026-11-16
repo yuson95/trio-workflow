@@ -1,6 +1,6 @@
 ---
 name: trio-workflow
-description: Trio workflow for agent-driven delivery. An operator sets goals and walks through the real product, a reviewer agent plans and gives independent verdicts, and a builder agent implements in batches with evidence. Any agent can hold either role, for example Claude, Codex, Grok, or two sessions of one tool. Use it to set up a project's collaboration skeleton; to draft a plan or change request; to review a stop, a re-review, a design or a small change ("审查…停点N", "复审", "看一下设计", "看一下小改"); to merge and clean up ("合并并推送", "只合并不推送", "做收尾"); to run, resume or pause a builder session; or to decide how a batch's code is written (built-in rules or pstack playbooks as the inner layer).
+description: Trio workflow for agent-driven delivery. An operator sets goals and walks through the real product, a reviewer agent plans and gives independent verdicts, and a builder agent implements in batches with evidence. Any agent can hold either role, for example Claude, Codex, Grok, or two sessions of one tool. Use it to set up a project's collaboration skeleton; to draft a plan or change request; to review a stop, a re-review, a design or a small change ("审查…停点N", "复审", "看一下设计", "看一下小改"); to merge and clean up ("合并并推送", "只合并不推送", "做收尾"); to run, resume or pause a builder session; to decide how a batch's code is written (built-in rules or pstack playbooks as the inner layer); or to combine stops with pull requests and CI.
 ---
 
 # Trio workflow
@@ -51,6 +51,7 @@ Done when you can name each line, its current step, and your next step.
 | "合并并推送", "只合并不推送", "做收尾" | [merge.md](merge.md) |
 | Builder: start, continue, resume, or pause | [builder.md](builder.md) |
 | Writing code inside a batch; choosing the inner playbook; pstack is installed | [layers.md](layers.md) |
+| Pull requests, CI, a batch PR or the plan PR (`Delivery: pr` in `0_RULES`) | [prs.md](prs.md) |
 | Anything the operator will see: prototypes, screenshot matrix, visual review, walkthrough notes | [ui-acceptance.md](ui-acceptance.md) |
 | Applying any principle below | [principles.md](principles.md) |
 

@@ -32,6 +32,7 @@ The contract between the layers is in `skills/trio-workflow/layers.md`:
 | `skills/trio-workflow/merge.md` | Merge, push, restart, cleanup, retro |
 | `skills/trio-workflow/builder.md` | Builder lead and workers: kickoff, integration, stalls, stops, resume, pause, token rules |
 | `skills/trio-workflow/layers.md` | Outer/inner contract and the pstack adapter |
+| `skills/trio-workflow/prs.md` | Stops and pull requests together: batch PRs with CI into `wip/<plan>`, stops for independent review, a plan PR into `main` |
 | `skills/trio-workflow/principles.md` | The principles, each with a trigger and an action |
 | `skills/trio-workflow/ui-acceptance.md` | UI acceptance: prototypes before code, screenshot matrix, visual review, walkthrough findings turned into structure |
 | `skills/trio-workflow/scripts/heavy_lock.py` | Machine-wide lock so heavy checks from different sessions never overlap |

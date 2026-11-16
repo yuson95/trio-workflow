@@ -11,6 +11,7 @@ Role: whichever agent the operator names as reviewer. The goal is a working hand
    - **roles**: which agent and tool plays Reviewer and which plays Builder, and whether they belong to the same model family;
    - **inner layer**: pstack, and in which tools it is installed, or the built-in rules (see [layers.md](layers.md));
    - how messages travel between agents (default: the operator relays a one-line pointer to a file);
+   - **delivery**: `local` (default) or `pr`, meaning batch PRs into `wip/<plan>` with CI and a plan PR into `main`; in `pr` mode, also the standing authorization (see [prs.md](prs.md));
    - the operator's authorization phrases (defaults: "合并并推送", "只合并不推送", "做收尾");
    - the operator's running service: port and restart method;
    - where client data lives, and how synthetic data is produced;
@@ -123,6 +124,7 @@ Generic process, parallel and token rules: trio-workflow skill, builder.md. Only
    Inner layer: pstack (installed in <tools>) / built-in.
    Skill scripts: <skill dir>/scripts (heavy_lock.py, log_decision.py, check_plan.py).
 2. Baseline and branches: new worktree (short path outside the repo) and local branch from current main; integration branch wip/<plan>; remote policy.
+   Delivery: local / pr. In pr mode: forge, CI tiers per PR, standing authorization for the builder and the reviewer.
 3. Checks: quick command; full command and duration; heavy checks and their lock file; report summary lines; missing environment = NOT_RUN.
 4. Verification recipe: path to Launch / Doctor / Drive / Evidence / Cleanup and the feature map.
 5. Data and isolation: data root; isolated instance command (own port, own projects dir); the operator's service port (never touch).
