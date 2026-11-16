@@ -12,6 +12,13 @@
 - Verify, unit: `tests/test_summary.py`
 - Review gate: none
 
+### R2 Add a stale-result banner
+- Type: feature
+- You see: a yellow banner says which input changed
+- Verify, unit: `tests/test_banner.py`
+- Verify, live: open a stale run; screenshot
+- Review gate: operator walkthrough
+
 ## 3. Batches, parallelism and ownership
 | Batch | Requirement IDs | Depends on | Owned files | Runs alongside |
 | --- | --- | --- | --- | --- |

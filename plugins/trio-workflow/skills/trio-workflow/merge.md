@@ -30,5 +30,5 @@ Role: Reviewer, or whichever agent the operator authorizes. Act only on the oper
    - remove only what this project's runs created.
 
    Prefer the recycle bin. Delete branches against their recorded SHA so nothing else is removed by mistake.
-3. **Retro.** Turn every lesson that came up twice in this plan into a test, check, script or lock (encode lessons in structure). Record it in `00_FLOW`'s open items and schedule it into a later plan.
+3. **Retro.** Turn every lesson that came up twice in this plan into a test, check, script or lock (encode lessons in structure). Record it in `00_FLOW`'s open items and schedule it into a later plan. Check the walkthrough notes: every finding classed as a convention breach, a spec gap or a bug has its structural fix landed or scheduled (see [ui-acceptance.md](ui-acceptance.md) §4).
 4. **Memory.** Keep only facts with lasting value: the `main` SHA, new conventions, the operator's decisions.

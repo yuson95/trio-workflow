@@ -17,6 +17,7 @@ UI conventions bind R1.
 - Verify, unit: `tests/test_summary.py` gains test_yearly_total
 - Verify, live: open the summary page of the synthetic project; screenshot; pass when the total row shows
 - Review gate: operator walkthrough
+- Prototype: `docs/mockups/summary_MOCKUP.html`
 
 ### R2 Fix the rounding of negative values
 - Type: bug fix

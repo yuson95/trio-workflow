@@ -1,6 +1,6 @@
 {
   "name": "trio-workflow",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Operator + reviewer + builder delivery workflow for coding agents: plans with stops, independent verdicts bound to a commit, evidence-based batches, and an optional pstack inner layer. Works with Claude Code, Codex, Cursor and other agents.",
   "author": {
     "name": "yushengchen"

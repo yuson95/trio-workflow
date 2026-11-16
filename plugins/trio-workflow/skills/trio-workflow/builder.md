@@ -50,7 +50,11 @@ Role: Builder. The lead coordinates, integrates and reports, and never writes th
    - A question that changes business meaning: proceed on the plan's default or the most conservative choice, log it, and report it at the next stop.
    - Stop early only for a blocker that halts all remaining work.
    - Requests the operator gives you directly: do them, and mark them "operator's direct request" with the date in the stop material.
-9. **Before the final stop**, start an isolated instance from the candidate with a synthetic copy (own port, own projects directory) using the verification recipe. Give the operator the address and the page list, and fix what the walkthrough finds before the stop.
+9. **Before any walkthrough and before the final stop**, follow [ui-acceptance.md](ui-acceptance.md):
+   - capture the screenshot matrix for every changed page and state, on `main` and on the candidate, and build the contact sheet with `scripts/screenshot_sheet.py` (§2);
+   - run the visual review and fix its findings, then recapture (§3);
+   - start an isolated instance from the candidate with one prepared synthetic project per state (own port, own projects directory). Give the operator the address, the page list in walking order and the contact sheet (§4);
+   - fix what the walkthrough finds before the stop.
 10. **At a stop**:
     - run the full check in a quiet environment, under the lock;
     - at the final stop, also run the regression gate and commit the handoff doc to the wip branch;
@@ -148,6 +152,7 @@ Append with `python <skill dir>/scripts/log_decision.py <file> <phase> <decision
 ## 6. Operator's direct requests (dates)
 ## 7. Questions settled by default
 ## 8. Decisions for the operator (with defaults)
-## 9. Attention (optional cross-model scan of the decision trail)
-## 10. Walkthrough address and page list (final stop)
+## 9. Screenshot sheet and visual review (path; states not reachable and why; findings fixed; same-family or cross-family)
+## 10. Attention (optional cross-model scan of the decision trail)
+## 11. Walkthrough address and page list
 ```

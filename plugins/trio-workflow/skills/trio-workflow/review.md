@@ -31,6 +31,7 @@ Use the material path the operator gives. The `RESULT` file sits next to it, wit
 - the contracts (data shapes, interfaces, storage migration, page flow) match the current code; spot-check the key pointers;
 - the ownership table is complete and each hotspot has one owner;
 - the probe and prototype conclusions hold;
+- every review-gated requirement has a prototype, and the operator has confirmed it or picked a variant;
 - the builder's opening checks are sound.
 
 Run only the quick check when the code is identical to `main`. The other steps stay the same.
@@ -57,6 +58,7 @@ Run only the quick check when the code is identical to `main`. The other steps s
    - **Live**: start an isolated instance from the candidate with a synthetic copy, following the verification recipe named in `0_RULES`, and drive the changed pages. Never use the operator's service.
    - **Numbers**: cross-check every new number through an independent path (explain the number).
    - **Expand**: chart axis order, empty projects, pages opened directly rather than from history, load time with many runs.
+   - **Look at the page** for every UI change: open the builder's contact sheet ([ui-acceptance.md](ui-acceptance.md) §2). Run the visual review (§3) yourself when the builder's pass was same-family or missing. Missing states without a written reason count as findings.
 4. **Adversarial pass.** Try to break the change against its stated intent. If pstack is installed in your tool, its interrogate skill runs this pass (see [layers.md](layers.md)); the rules below still decide what counts.
    - A finding counts only when a run shows it: a failing test, a repro script, command output or a screenshot, plus the output the intent requires.
    - Drop what you could not reproduce, and record how many findings you dropped and why.
@@ -134,8 +136,11 @@ Checks (summary lines, duration, log path); pages driven live; adversarial pass 
 ## 5. Decisions for the operator
 | ID | Question | Options | Default |
 
-## 6. Attention
+## 6. Visual review
+Contact sheet path; visual-review findings (page, state, screenshot, broken rule, expected); same-family or cross-family.
+
+## 7. Attention
 What the operator should look at first, pointing to rows, pages or files. "No flags" is valid.
 
-## 7. Text for the builder (copy as is)
+## 8. Text for the builder (copy as is)
 ```

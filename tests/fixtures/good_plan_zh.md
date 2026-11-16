@@ -13,6 +13,7 @@
 - 单元验证：`tests/test_summary.py` 新增 test_yearly_total
 - 实际操作验证：打开合成项目的摘要页并截图，合计行出现即通过
 - 走查：需要
+- 原型：`docs/mockups/summary_MOCKUP.html`
 
 ## 3. 批次、并行和文件归属
 | 批次 | 需求编号 | 依赖 | 独占文件 | 可以并行 |

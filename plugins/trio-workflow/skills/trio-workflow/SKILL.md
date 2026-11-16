@@ -51,6 +51,7 @@ Done when you can name each line, its current step, and your next step.
 | "合并并推送", "只合并不推送", "做收尾" | [merge.md](merge.md) |
 | Builder: start, continue, resume, or pause | [builder.md](builder.md) |
 | Writing code inside a batch; choosing the inner playbook; pstack is installed | [layers.md](layers.md) |
+| Anything the operator will see: prototypes, screenshot matrix, visual review, walkthrough notes | [ui-acceptance.md](ui-acceptance.md) |
 | Applying any principle below | [principles.md](principles.md) |
 
 ## Two layers
@@ -66,6 +67,7 @@ The scripts live next to this file in `scripts/` and run with Python 3.9 or late
 | `heavy_lock.py --lock <path> run --owner <session> -- <command>` | Run a heavy check under the machine-wide lock (`status`, `acquire` and `release` are also available) |
 | `log_decision.py <file> <phase> <decision> <why> <evidence> <result>` | Append one row to `<KEY>_DECISIONS.tsv` |
 | `check_plan.py <plan file>` | Check a plan's structure before handing it over |
+| `screenshot_sheet.py <evidence dir> --states empty full many narrow` | Build the page × state contact sheet, `main` beside the candidate |
 
 ## 3. File names
 
@@ -98,7 +100,7 @@ All files live in the handoff directory. A path the operator gives wins over the
 Each principle has a trigger and an action in [principles.md](principles.md). When one shapes a decision, name it in the file or reply where you record that decision.
 
 - **Core:** restate first, settle forks by running, subtract before you add, smallest change, fix root causes.
-- **Verification:** prove it works, explain the number, sequence verifiable units, test behavior.
+- **Verification:** prove it works, look at the page, explain the number, sequence verifiable units, test behavior.
 - **Delegation:** guard the context window, fresh worker per task, read the diff not the summary, never block on the operator, separate before serializing.
 - **Meta:** encode lessons in structure, build the lever, keep a decision trail.
 

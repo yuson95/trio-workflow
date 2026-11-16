@@ -28,6 +28,7 @@ Role: whichever agent the operator names as reviewer. The goal is a working hand
    - **Evidence**: what to capture (screenshots, response bodies, stored files) and where it is kept.
    - **Cleanup**: stop only what this run started; the evidence survives cleanup.
    - **Feature map**: one short file per main feature, covering how to reach it, how to drive it, the end state that proves it works, and gotchas.
+   - **Screenshot states**: how to reach each default state of [ui-acceptance.md](ui-acceptance.md) §2 (empty, full, many, narrow, second language) with prepared synthetic projects, and how to save `<page>__<state>.png`.
 
    The recipe is done only after the builder has run it once end to end.
 4. **Create the handoff directory** from the templates below: `00_START_HERE`, `00_FLOW`, `0_RULES`, `PROMPTS`, `batch-notes/`. Fill in every field of `0_RULES`, including the role table, the lock file path and the recipe path.

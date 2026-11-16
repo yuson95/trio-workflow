@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.3.0 (2026-11-16)
+
+- Added `ui-acceptance.md`: prototypes before code for review-gated requirements, a page × state screenshot matrix, a visual review before the operator walks through, and walkthrough findings classed and routed into structure.
+- `check_plan.py` reports review-gated requirements without a prototype (`Prototype:` / `原型：`).
+- Added `screenshot_sheet.py` with tests; new principle "Look at the page".
+- Planning, review, builder, merge and bootstrap now point to the UI acceptance steps.
+
 ## 0.2.0 (2026-11-16)
 
 - Packaged as a plugin. One shared `skills/` folder, with manifests for:

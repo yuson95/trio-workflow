@@ -3,7 +3,8 @@
 
 Checks:
   1. Every requirement block (### <ID> ... under the requirements section) has
-     a type, a "You see" line, unit and live verification, and a review gate.
+     a type, a "You see" line, unit and live verification, and a review gate;
+     a review-gated requirement (gate other than "none") also needs a prototype.
   2. Every decision row has a default.
   3. In the batches table, no file is owned by two batches unless it is listed
      as append-only, and every dependency names a batch that exists.
@@ -33,6 +34,9 @@ OWNED_HEADERS = ("owned files", "独占文件", "归属文件")
 DEPENDS_HEADERS = ("depends on", "依赖")
 APPEND_ONLY_MARKERS = ("append-only", "追加型")
 EMPTY_DEFAULTS = {"", "-", "—", "tbd", "?", "待定"}
+PROTOTYPE = ("Prototype", "原型")
+GATE_VALUE = re.compile(r"(?:Review gate|走查)\s*\**\s*[:：]\s*(.*)")
+NO_GATE = {"none", "no", "-", "—", "无", "不需要", "否"}
 BACKTICK = re.compile(r"`([^`]+)`")
 
 
@@ -75,6 +79,11 @@ def _column(header, keys):
     return None
 
 
+def _has_label(body, aliases):
+    """True when a line of the block starts with one of the labels, optionally as a bullet or in bold."""
+    return any(re.search(r"(^|\n)\s*[-*]?\s*(\*\*)?" + re.escape(alias), body) for alias in aliases)
+
+
 def check_requirements(lines, start, end, problems):
     blocks = [i for i in range(start, end) if lines[i].startswith("### ")]
     if not blocks:
@@ -84,8 +93,12 @@ def check_requirements(lines, start, end, problems):
         body = "\n".join(lines[first:last])
         name = lines[first][4:].strip()
         for key, aliases in LABELS.items():
-            if not any(re.search(rf"(^|\n)\s*[-*]?\s*(\*\*)?{re.escape(alias)}", body) for alias in aliases):
+            if not _has_label(body, aliases):
                 problems.append((first + 1, f"requirement '{name}' lacks '{aliases[0]}' / '{aliases[1]}'"))
+        gate = GATE_VALUE.search(body)  # a gate other than "none" means the operator will judge the result
+        gated = gate is not None and gate.group(1).strip().strip("*`").strip().lower() not in NO_GATE
+        if gated and not _has_label(body, PROTOTYPE):
+            problems.append((first + 1, f"review-gated requirement '{name}' lacks 'Prototype' / '原型'"))
 
 
 def check_decisions(lines, start, end, problems):

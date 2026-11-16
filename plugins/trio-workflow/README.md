@@ -33,9 +33,11 @@ The contract between the layers is in `skills/trio-workflow/layers.md`:
 | `skills/trio-workflow/builder.md` | Builder lead and workers: kickoff, integration, stalls, stops, resume, pause, token rules |
 | `skills/trio-workflow/layers.md` | Outer/inner contract and the pstack adapter |
 | `skills/trio-workflow/principles.md` | The principles, each with a trigger and an action |
+| `skills/trio-workflow/ui-acceptance.md` | UI acceptance: prototypes before code, screenshot matrix, visual review, walkthrough findings turned into structure |
 | `skills/trio-workflow/scripts/heavy_lock.py` | Machine-wide lock so heavy checks from different sessions never overlap |
 | `skills/trio-workflow/scripts/log_decision.py` | Appends one row to a plan's decision trail |
-| `skills/trio-workflow/scripts/check_plan.py` | Checks a plan's structure (types, "You see" lines, verification, defaults, file ownership) |
+| `skills/trio-workflow/scripts/check_plan.py` | Checks a plan's structure (types, "You see" lines, verification, prototypes for review-gated items, defaults, file ownership) |
+| `skills/trio-workflow/scripts/screenshot_sheet.py` | Builds the page × state contact sheet, `main` beside the candidate |
 
 The scripts need Python 3.9 or later and nothing else.
 

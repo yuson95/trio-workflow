@@ -35,6 +35,9 @@ Each entry gives a trigger ("when") and an action ("do"). Most are adapted from 
 - **Sequence verifiable units.**
   - When: multi-step work, migrations, or runs of similar edits.
   - Do: cut the work into small units that each end in a check, and do not advance on red. Order commits so they read as an argument: failing test then fix, subtraction then reshape, baseline then treatment.
+- **Look at the page** (trio).
+  - When: a change alters anything the operator will see or use.
+  - Do: judge screenshots of every changed page in every relevant state against the UI conventions and the confirmed prototype before the operator sees it. Passing tests say nothing about names, ordering, empty states or layout. See [ui-acceptance.md](ui-acceptance.md).
 - **Test behavior, not implementation.**
   - When: writing or keeping a test.
   - Do: assert what users of the code can observe, so the test fails when that behavior breaks and survives internal changes.

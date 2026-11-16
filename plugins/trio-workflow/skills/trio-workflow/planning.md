@@ -19,13 +19,14 @@ Role: Reviewer. Plans and change requests are the builder's only source of requi
    - an ID;
    - a **type**: feature, bug fix, refactoring, perf, hillclimb, visual parity, prototype or investigation. The type picks the inner playbook (see [layers.md](layers.md));
    - a **You see** line: one observable result, such as a page state, a stored value or an output line;
+   - a **prototype** for every review-gated requirement: an HTML mockup, an annotated screenshot or an operator-supplied reference, confirmed at stop 1 (see [ui-acceptance.md](ui-acceptance.md) §1);
    - verification:
      - **unit**: the tests that gain cases;
      - **live**: scenarios driven through the verification recipe, each with its screenshot or output and a pass predicate, including one regression scenario run on both `main` and the candidate;
      - **perf**: when timing matters, the metric, a baseline measured on `main` first, and the number that fails.
 
    Tests alone do not verify user-visible behavior.
-6. **Mark the review gates.** A requirement that changes what the operator sees or does is review-gated: the operator walks through it on an isolated instance before the final stop.
+6. **Mark the review gates.** A requirement that changes what the operator sees or does is review-gated: the operator walks through it on an isolated instance before the final stop. Plans whose UI changes span several pages also schedule a walkthrough after the first UI batch. Name the screenshot states each changed page needs (see [ui-acceptance.md](ui-acceptance.md) §2).
 7. **Set the stops**, usually two or three:
    - Stop 1, before code: the plan and contracts (data shapes, interfaces, storage migration, page flow) and the ownership table.
    - Storage-format changes and migrations need a `DESIGN_*.md` that the reviewer answers with "go ahead" before code is written.
@@ -50,8 +51,8 @@ Role: Reviewer. Plans and change requests are the builder's only source of requi
 
    Done when every batch has owned files and dependencies, and every hotspot has exactly one owner.
 9. **Check the plan's structure**: run `python <skill dir>/scripts/check_plan.py <plan file>` and fix every line it prints until it reports `CHECK_PLAN ok`.
-   - It checks that every requirement has a type, a "You see" line, unit and live verification and a review gate; that every decision has a default; and that every file has one owner batch unless it is marked append-only.
-   - It recognizes these labels in a Chinese plan: 类型, 你会看到, 单元验证, 实际操作验证, 走查; and in section titles: 需求, 决定, 批次, 独占文件, 依赖, 追加型.
+   - It checks that every requirement has a type, a "You see" line, unit and live verification and a review gate; that every review-gated requirement has a prototype; that every decision has a default; and that every file has one owner batch unless it is marked append-only.
+   - It recognizes these labels in a Chinese plan: 类型, 你会看到, 单元验证, 实际操作验证, 走查, 原型; and in section titles: 需求, 决定, 批次, 独占文件, 依赖, 追加型.
 10. **Write the kickoff prompt** into `PROMPTS`, and update `00_FLOW`: roadmap, current step, decisions.
 11. **Reply**: the plan path, the checker's summary line, the decisions with their defaults, what the probes proved and what remains unproven, and the operator's next step (which prompt to paste where).
 
@@ -80,6 +81,7 @@ Which general rules bind this plan; which items the UI conventions bind; what is
 - Verify, live: <scenario via the verification recipe; screenshot or output; pass when …> plus one regression scenario on main and the candidate
 - Verify, perf (if relevant): <metric; baseline on main first; failing number>
 - Review gate: operator walkthrough / none
+- Prototype (review-gated only): <path to mockup or annotated screenshot>
 
 ## 3. Batches, parallelism and ownership
 | Batch | Requirement IDs | Depends on | Owned files | Runs alongside |

@@ -45,6 +45,8 @@ class CheckPlanTests(unittest.TestCase):
         self.assertIn("decision 'D-2' has no default", out)
         self.assertIn("`shared/table.js` is owned by several batches", out)
         self.assertIn("depends on unknown batch 'B7'", out)
+        self.assertIn("review-gated requirement 'R2 Add a stale-result banner' lacks 'Prototype'", out)
+        self.assertNotIn("'R1 Show the yearly total' lacks 'Prototype'", out)
         self.assertRegex(out, r"CHECK_PLAN \d+ problems")
 
     def test_missing_sections_are_reported(self):
@@ -56,6 +58,33 @@ class CheckPlanTests(unittest.TestCase):
         self.assertIn("no 'requirements' section found", result.stdout)
         self.assertIn("no 'batches' section found", result.stdout)
 
+
+
+class ScreenshotSheetTests(unittest.TestCase):
+    def test_sheet_marks_each_cell_and_links_images(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / "main").mkdir()
+            (root / "candidate").mkdir()
+            (root / "main" / "results__full.png").write_bytes(b"same")
+            (root / "candidate" / "results__full.png").write_bytes(b"same")
+            (root / "main" / "results__empty.png").write_bytes(b"old")
+            (root / "candidate" / "results__empty.png").write_bytes(b"new")
+            (root / "candidate" / "decision__full.png").write_bytes(b"x")
+            result = run("screenshot_sheet.py", str(root), "--states", "empty", "full", "narrow")
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertIn("pages=2 states=3", result.stdout)
+            self.assertIn("missing=3 unchanged=1 changed=1 new=1 removed=0", result.stdout)
+            sheet = (root / "index.html").read_text(encoding="utf-8")
+        self.assertIn('src="candidate/results__empty.png"', sheet)
+        self.assertIn('src="main/results__empty.png"', sheet)
+        for tag in ("unchanged", "changed", "new", "missing"):
+            self.assertIn(f'<span class="tag">{tag}</span>', sheet)
+
+    def test_missing_folders_are_reported(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            result = run("screenshot_sheet.py", tmp)
+        self.assertEqual(result.returncode, 2)
 
 class LogDecisionTests(unittest.TestCase):
     def test_first_row_writes_header_and_cleans_cells(self):
