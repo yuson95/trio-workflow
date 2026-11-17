@@ -151,7 +151,7 @@ My longer profile is at [yuson95.github.io](https://yuson95.github.io); parts of
 | `.claude-plugin/marketplace.json` | Claude Code marketplace `trio` |
 | `.agents/plugins/marketplace.json` | Codex marketplace `trio` |
 | `tools/install_local.py` | Copy mode: install, check or remove the skill in `~/.claude`, `~/.codex` and `~/.cursor` |
-| `tests/` | Behavior tests for the scripts and the installer, with sample plans |
+| `tests/` | Behavior tests for the scripts and the installer, plus repository self-checks (versions, links, skill size, templates) |
 | `.github/workflows/tests.yml` | Runs the tests on Linux and Windows for every push and pull request |
 | `docs/QUICKSTART.md`, `docs/QUICKSTART_zh.md` | Step-by-step guides in English and Chinese |
 | `docs/workflow/` | The workflow plate in English and Chinese (PNG, PDF) and the script that draws it |
@@ -172,14 +172,10 @@ Release a new version:
 2. Raise `version` in the four manifests.
 3. Add a `CHANGELOG.md` entry.
 4. If the workflow changed, redraw the plates with `python docs/workflow/draw_workflow.py --lang en` and `--lang zh`.
-5. Run the tests and `claude plugin validate plugins/trio-workflow`.
+5. Run the tests and `claude plugin validate plugins/trio-workflow`. The self-checks fail when the versions disagree, a link breaks, the skill description passes 450 characters, `SKILL.md` passes 110 lines, or a branch file or script is not reachable from `SKILL.md`.
 6. Commit and push. CI runs the tests on Linux and Windows.
 
-If you use copy mode, then run:
-
-```bash
-python tools/install_local.py install
-```
+Then update your installed copy with `npx skills update -g`, or, in copy mode, with `python tools/install_local.py install`.
 
 ## License
 

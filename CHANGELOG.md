@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.5.0 (2026-11-17)
+
+- Smaller always-loaded footprint: the skill description went from 734 to 429 characters, and `SKILL.md` from 115 to 96 lines, with every rule kept. Section numbers, file names and the `builder.md` sections that running plans refer to are unchanged.
+- Added `scripts/bootstrap_handoff.py` and the templates in `templates/en` and `templates/zh`. One command now creates `00_START_HERE`, `00_FLOW`, `0_RULES` and `PROMPTS` with the project's names filled in, and never overwrites. `bootstrap.md` went from 152 to 55 lines.
+- Added repository self-checks (`tests/test_repo.py`). They cover version agreement between the manifests and the changelog, marketplace targets, links, the size limits on the description and `SKILL.md`, unreachable branch files or scripts, template parity between languages, and the shipped license. The suite has 30 tests.
+
 ## 0.4.3 (2026-11-17)
 
 - Documented npx mode: `npx skills add yuson95/trio-workflow -g -a claude-code -a codex -y --copy`, using Vercel's open `skills` installer, which finds trio's skill unchanged. The full cycle (list, install, check, update, remove) was tested in an isolated home with telemetry off. The installed files match the repository byte for byte.

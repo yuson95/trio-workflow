@@ -32,7 +32,13 @@ Role: whichever agent the operator names as reviewer. The goal is a working hand
    - **Screenshot states**: how to reach each default state of [ui-acceptance.md](ui-acceptance.md) §2 (empty, full, many, narrow, second language) with prepared synthetic projects, and how to save `<page>__<state>.png`.
 
    The recipe is done only after the builder has run it once end to end.
-4. **Create the handoff directory** from the templates below: `00_START_HERE`, `00_FLOW`, `0_RULES`, `PROMPTS`, `batch-notes/`. Fill in every field of `0_RULES`, including the role table, the lock file path and the recipe path.
+4. **Create the handoff directory** with the script, in the operator's language:
+
+   ```bash
+   python <skill dir>/scripts/bootstrap_handoff.py --dir <handoff dir> --project <name> --reviewer <agent> --builder <agent> --lang zh --delivery local --service "port 8766"
+   ```
+
+   It writes `00_START_HERE.md`, `00_FLOW.md`, `0_RULES.md`, `PROMPTS.md` and `batch-notes/` from [templates/](templates/) (`en` or `zh`), and never overwrites an existing file. Then fill every remaining `<…>` in `0_RULES.md`: the check commands, the recipe path, the data root and the hotspot files.
 5. **Specify the repo-side skeleton as part of the first batch**:
    - a one-page `AGENTS.md`: hard rules plus pointers to what to read first;
    - `docs/development/CURRENT_STATUS.md`: current capabilities, known limits and test entry points, each with its source;
@@ -46,106 +52,4 @@ Role: whichever agent the operator names as reviewer. The goal is a working hand
 
 ## Templates
 
-### `00_START_HERE` (for the operator)
-
-```markdown
-# Start here · <project>
-
-For where things stand now, read 00_FLOW §0.
-
-## Roles
-| Role | Agent / tool | Session rule |
-| Reviewer | <e.g. Claude Code> | a fresh session per stop review |
-| Builder | <e.g. Codex> | one session per plan |
-
-## Files
-| File | What | Reader |
-| 00_FLOW | current state, process, rules, decisions, open items | you and the reviewer |
-| 0_RULES | roles, repo rules, verification recipe | builder |
-| <N>_PLAN_… | one plan per builder session | builder |
-| PROMPTS | kickoff and resume prompts | you copy them |
-| batch-notes/ | progress, handoffs, decisions, stop materials, results, requests | at stops |
-
-## Every plan runs the same way
-1. Open a builder session and paste the plan's kickoff prompt from PROMPTS.
-2. At a stop, the builder replies with one line: "Reached stop N, material at …".
-3. Open a fresh reviewer session and say "审查<plan>停点N" with that line. Do not tell the builder it passed yet.
-4. Tell the builder: "Review result at <RESULT path>; fix accordingly and continue." Add any decisions; silence means defaults.
-5. Before the final stop, walk through the isolated instance the builder gives you and tell the builder what you see.
-6. After the final stop passes, tell the reviewer "合并并推送". Restart your service after the merge.
-If a session breaks or slows down, open a new one with the resume prompt.
-
-## Phrases
-| Say | To | Effect |
-| 审查<plan>停点N | reviewer | RESULT written; decisions listed |
-| 看一下小改 | reviewer | diff-only check |
-| 合并并推送 / 只合并不推送 | reviewer | fast-forward merge, push if asked |
-| 做收尾 | reviewer | cleanup list, executed after your OK |
-```
-
-### `00_FLOW` (the single current state)
-
-```markdown
-# <project> flow and open items
-
-## 0. Overview (<date>)
-| Line | Plan | Current step | Your next step |
-main = <sha>
-
-## 1. Roadmap
-| Order | Plan | Stops | Reviewer session | Handoff doc |
-
-## 2. Current stage (step by step, mark "← here")
-
-## 3. Rules
-Roles, stops, merge, check tiers, light path, walkthrough, test rules, branches, data. Point to the trio-workflow skill for generic rules; write only project-specific ones here.
-
-## 4. When it is your turn (situation → action)
-
-## 5. Decisions waiting on you
-| When | Item | Default |
-
-## 6. Open items
-| # | Item | Goes to | When | Who |
-
-## 7. File index
-
-## 8. Change log
-Keep the last 10 entries; move older ones to history/FLOW_LOG.md.
-```
-
-### `0_RULES` (read by the builder at the start of every session)
-
-```markdown
-# Project rules
-Generic process, parallel and token rules: trio-workflow skill, builder.md. Only project-specific rules here.
-
-1. Roles: Reviewer = <agent>, Builder = <agent>; same family: yes/no.
-   Inner layer: pstack (installed in <tools>) / built-in.
-   Skill scripts: <skill dir>/scripts (heavy_lock.py, log_decision.py, check_plan.py).
-2. Baseline and branches: new worktree (short path outside the repo) and local branch from current main; integration branch wip/<plan>; remote policy.
-   Delivery: local / pr. In pr mode: forge, CI tiers per PR, standing authorization for the builder and the reviewer.
-3. Checks: quick command; full command and duration; heavy checks and their lock file; report summary lines; missing environment = NOT_RUN.
-4. Verification recipe: path to Launch / Doctor / Drive / Evidence / Cleanup and the feature map.
-5. Data and isolation: data root; isolated instance command (own port, own projects dir); the operator's service port (never touch).
-6. Parallel: worker cap (default 3); hotspot files.
-7. UI conventions document path.
-8. Project-specific: formatting, provenance, path rules, guard tests.
-9. Known issues.
-```
-
-### `PROMPTS` (the operator copies these to the builder)
-
-```text
-Run <plan file path> under the builder flow of the trio-workflow skill, entirely in this session, stopping only at the plan's stops.
-Read first: <0_RULES path>; the plan's general sections; earlier plans' handoff docs <names> (in docs/development/history/; if missing, stop and tell me); AGENTS.md and CURRENT_STATUS.md.
-Integration branch wip/<key>; progress batch-notes/<KEY>_PROGRESS.md; decisions batch-notes/<KEY>_DECISIONS.tsv; stop material batch-notes/REVIEW_<key>_stop<N>.md.
-No push, no merge into main, no client data, never touch <service port>.
-Start now and work through to stop 1.
-```
-
-Resume prompt:
-
-```text
-Continue <plan>. Read batch-notes/<KEY>_PROGRESS.md, the last handoff and the tail of <KEY>_DECISIONS.tsv, then resume under the builder flow of the trio-workflow skill. Do not redo finished batches.
-```
+The templates live in [templates/en/](templates/en/) and [templates/zh/](templates/zh/), one file per handoff file. Edit them there; the script fills the `{{placeholders}}`.
