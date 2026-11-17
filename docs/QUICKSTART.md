@@ -4,6 +4,15 @@ This guide walks you through your first plan with trio. It assumes no programmin
 
 Throughout, you stay in charge of what gets built and whether it is right. The agents support you in the roles you choose to hand over, and check each other.
 
+**Before you start.** trio fits two situations: you bring expertise in a field, or you bring an idea that has not taken shape yet. Its premise is that you stay in charge at the key moments:
+
+- the plan and its prototypes;
+- the decisions at each stop;
+- the walkthrough;
+- the merge.
+
+If you want a whole app from one sentence without taking part in those moments, trio is not the right tool.
+
 [中文版](QUICKSTART_zh.md)
 
 ## What you do, and what you never have to do

@@ -38,7 +38,7 @@ TEXT = {
         "title": "trio workflow",
         "subtitle": "One plan as a journey. You decide, one agent reviews, another builds. Stops are where all three meet.",
         "legend_lines": [("Operator", "you"), ("Reviewer", "agent A"), ("Builder", "agent B")],
-        "legend_marks": ["action", "stop", "batch PR with CI"],
+        "legend_marks": ["action", "stop", "batch PR with CI (PR mode)"],
         "operator": [(340, "Set the goal"), (560, "Answer decisions"), (1160, "Report problems"), (1780, "Walk through"), (2135, "Authorize")],
         "reviewer": [(340, "Bootstrap"), (560, "Draft the plan"), (1160, "Change requests"), (1780, "Sort findings"), (2135, "Retro")],
         "builder": [(880, "Kick off"), (1470, "Integrate"), (1780, "Screenshots"), (2135, "Plan PR")],
@@ -55,7 +55,7 @@ TEXT = {
         "title": "trio 工作流",
         "subtitle": "把一个方案看作一段旅程。你做决定，一个 agent 审查，另一个 agent 执行；停点是三方交汇的地方。",
         "legend_lines": [("操作者", "你"), ("审查者", "agent A"), ("执行者", "agent B")],
-        "legend_marks": ["动作", "停点", "批次 PR，带 CI"],
+        "legend_marks": ["动作", "停点", "批次 PR，带 CI（PR 模式）"],
         "operator": [(340, "定目标"), (560, "回答决定"), (1160, "提出问题"), (1780, "走查"), (2135, "授权")],
         "reviewer": [(340, "搭骨架"), (560, "拟方案"), (1160, "修改单"), (1780, "意见分类"), (2135, "复盘")],
         "builder": [(880, "派活"), (1470, "集成"), (1780, "截图对照"), (2135, "方案 PR")],
@@ -116,13 +116,13 @@ class Plate:
     def header(self):
         self.text(110, 140, self.t["title"], self.f["title"], 76, ha="left")
         self.text(112, 228, self.t["subtitle"], self.f["sans"], 15, color=MUTED, ha="left")
-        x = 1500
+        x = 1420
         for (name, sub), color in zip(self.t["legend_lines"], (OPERATOR, REVIEWER, BUILDER)):
             self.line([x, x + 58], [130, 130], color)
             self.text(x + 76, 130, name, self.f["bold"], 12.5, ha="left")
             self.text(x + 76, 158, sub, self.f["sans"], 10.5, color=MUTED, ha="left")
             x += 270
-        x = 1500
+        x = 1420
         marks = self.t["legend_marks"]
         self.station(x + 29, 214, MUTED)
         self.text(x + 76, 214, marks[0], self.f["sans"], 11.5, color=MUTED, ha="left")

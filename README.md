@@ -18,6 +18,10 @@
 > - 对产品有清晰构想、但较少亲自写代码的设计师；
 > - 希望依靠可靠的审查流程、而不必亲自逐行检查代码的人；
 > - 独立开发者，以及人手有限的小团队。
+>
+> **The premise**: you stay in charge at the key moments: the plan, the prototypes, the decisions at each stop, the walkthrough and the merge. trio is not a way to get a whole app from one sentence.
+>
+> **前提**：关键环节始终由你把关：方案、原型、每个停点的决定、走查和合并。trio 不是“一句话做出整个应用”的工具。
 
 This repository holds the **trio-workflow** plugin, a delivery workflow with three roles:
 
@@ -26,6 +30,44 @@ This repository holds the **trio-workflow** plugin, a delivery workflow with thr
 - another agent builds.
 
 Plan-level **stops** and batch-level **pull requests** work together: PRs with CI guard the code, and stops guard your intent. The usage guide is [plugins/trio-workflow/README.md](plugins/trio-workflow/README.md).
+
+## When trio fits
+
+trio is built for two situations.
+
+1. **You bring expertise.** You know a field well (engineering, energy, finance, medicine, research, consulting) and want software that gets that field right. trio turns your knowledge into requirements with checks, cross-checks the numbers another way, and brings the judgment calls to you.
+2. **You bring an idea that has not taken shape yet.** You know the problem and roughly what you want, but not yet the form. trio helps the idea take shape:
+   - the reviewer reads, probes and drafts a plan with prototypes;
+   - you confirm it, or pick between variants;
+   - you refine it stop by stop.
+
+**It does not fit** if you want a whole app from one sentence and would rather not take part in decisions and walkthroughs. trio's premise is that **you stay in charge at the key moments**:
+
+| Key moment | What you do | Typical time |
+| --- | --- | --- |
+| Plan and prototypes | confirm, or pick a variant | 15 to 30 minutes |
+| Each stop | answer a few decisions; each has a default | 10 to 30 minutes |
+| Walkthrough | try the real pages and say what feels wrong | 1 to 2 hours |
+| Merge | say "merge and push" | a minute |
+
+Between those moments, nobody waits on you.
+
+**适合的两种场景**：
+
+1. **你有专业知识**：熟悉某个领域，想做出在这个领域里既算得对、又用得顺的软件。trio 把你的知识变成带检查的需求，数字换一条路核对，需要判断的地方交给你。
+2. **你有想法，但还没成型**：知道要解决什么问题、大致想要什么，但具体形态还没想清楚。trio 帮你把想法做成型：
+   - 审查者先读代码、先试，再写出带原型的方案；
+   - 你确认，或者从几个变体里选一个；
+   - 在一个个停点里逐步调整。
+
+**不适合**：想“一句话做出整个应用”、不愿意参与决定和走查的人。trio 的前提是**你始终在关键处把关**，包括：
+
+- 确认方案和原型；
+- 回答每个停点的决定；
+- 走查真实页面；
+- 授权合并。
+
+这些时刻之外，谁都不会停下来等你。
 
 ## Who it's for
 
@@ -50,7 +92,7 @@ trio covers the roles you would like support in with agents that check each othe
 
 It also suits consultants and researchers who work with client data on their own machine, small teams whose results must be numerically right, and anyone who wants agents from two vendors to check each other.
 
-It is a poor fit for professional engineering teams that already run pull requests, CI and code review on GitHub (pstack or similar tools fit them better), for throwaway prototypes where stops and documents cost more than they save, and for anyone who wants an app from one sentence without taking part in decisions and walkthroughs.
+It is a poor fit for professional engineering teams that already run pull requests, CI and code review on GitHub (pstack or similar tools fit them better), and for throwaway prototypes where stops and documents cost more than they save. See [When trio fits](#when-trio-fits) for the one-sentence case.
 
 **What it asks of you**: patience for a little process, basic comfort with folders and a terminal, usually two agent subscriptions, and synthetic sample data.
 
