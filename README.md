@@ -50,7 +50,7 @@ It is a poor fit for professional engineering teams that already run pull reques
 
 ## Quickstart
 
-New to software projects? Read the step-by-step guide: **[docs/QUICKSTART.md](docs/QUICKSTART.md)** · **[中文版 docs/QUICKSTART_zh.md](docs/QUICKSTART_zh.md)**. In short:
+New to trio? Read the step-by-step guide: **[docs/QUICKSTART.md](docs/QUICKSTART.md)** · **[中文版 docs/QUICKSTART_zh.md](docs/QUICKSTART_zh.md)**. In short:
 
 1. Install the skill in both tools: `python tools/install_local.py install --target claude codex`.
 2. In the reviewer, say "Set up the trio workflow for this project", and answer its questions; the defaults are fine.

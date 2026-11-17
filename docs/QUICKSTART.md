@@ -1,6 +1,8 @@
-# Quickstart for people who are not programmers
+# Quickstart
 
-This guide is for you if you know your field well (engineering, energy, finance, medicine, research, consulting) and want AI agents to build software for it, but you do not read code and have never run a software project. You stay in charge of what gets built and whether it is right. The agents do the programming, and check each other.
+This guide walks you through your first plan with trio. It assumes no programming background, so a domain expert who does not code can follow every step. Developers, designers, solo builders and small teams can skim the parts they already know.
+
+Throughout, you stay in charge of what gets built and whether it is right. The agents fill the roles you lack and check each other.
 
 [中文版](QUICKSTART_zh.md)
 
