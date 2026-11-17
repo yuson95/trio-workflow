@@ -40,7 +40,7 @@ The contract between the layers is in `skills/trio-workflow/layers.md`:
 | `skills/trio-workflow/scripts/check_plan.py` | Checks a plan's structure (types, "You see" lines, verification, prototypes for review-gated items, defaults, file ownership) |
 | `skills/trio-workflow/scripts/screenshot_sheet.py` | Builds the page × state contact sheet, `main` beside the candidate |
 
-The scripts need Python 3.9 or later and nothing else.
+The scripts need Python 3.10 or later and nothing else.
 
 ## Install
 

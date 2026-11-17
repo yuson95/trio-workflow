@@ -31,7 +31,7 @@ Expect about 10 to 30 minutes of your time per stop, and an hour or two for each
 
 1. **Two agent sessions.** One will be the **reviewer**, which plans and checks; the other will be the **builder**, which writes the code. They can be two different tools (for example Claude Code and Codex) or two separate sessions of the same tool. Two different vendors check each other best.
 2. **trio installed in both tools** (step 1 below).
-3. **Python 3.9 or later**, for trio's small helper scripts.
+3. **Python 3.10 or later**, for trio's small helper scripts.
 4. **A project folder** for your app. If you do not have one yet, ask the reviewer to create it as a git repository; you do not need to learn git.
 5. **Some sample data that is not real**, or permission for the agents to make it up. The agents test only on made-up (synthetic) data.
 

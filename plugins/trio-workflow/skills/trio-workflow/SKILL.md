@@ -61,7 +61,7 @@ trio is the **outer layer**: plans, stops, reviews, merges and the operator's de
 
 ## Scripts
 
-The scripts live next to this file in `scripts/` and run with Python 3.9 or later.
+The scripts live next to this file in `scripts/` and run with Python 3.10 or later.
 
 | Script | Use |
 | --- | --- |

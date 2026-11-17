@@ -5,7 +5,7 @@
 - The marketplace is now named `trio`; it was `trio-local`. Install with `claude plugin marketplace add yuson95/trio-workflow`, then `claude plugin install trio-workflow@trio`.
 - The install instructions in both quickstart guides and the README lead with the plugin; copy mode remains for Codex, Cursor and several tools at once.
 - The README states when trio fits (expertise, or an idea still taking shape) and its premise: you stay in charge at the key moments. The audience wording is broader and gentler. PR mode is described as optional everywhere, including the plate legend.
-- Added installer tests and a GitHub Actions workflow that runs all tests on Linux and Windows.
+- Added installer tests and a GitHub Actions workflow that runs all tests on Linux and Windows with Python 3.10 and 3.13. The stated minimum is now Python 3.10.
 
 ## 0.4.1 (2026-11-16)
 
