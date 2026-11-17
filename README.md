@@ -1,17 +1,23 @@
 # trio-workflow (repository)
 
-> **For anyone who builds software with AI agents but cannot cover every role alone.**
-> 写给用 AI agent 开发软件、却无法独自包揽所有角色的人。
+> **For anyone building software with AI agents who would welcome support across the many roles a project needs.**
+> 写给借助 AI agent 开发软件、希望在项目的各个角色上都有可靠支持的人。
 >
-> That includes:
+> For example:
 >
-> - domain experts who do not code;
-> - developers without design or product experience;
-> - designers who do not code;
-> - people who would rather not read every line themselves;
-> - solo builders and short-staffed teams.
+> - domain experts without a programming background;
+> - developers who are strong in code but newer to design and product work;
+> - designers with a clear product vision who write little code themselves;
+> - people who prefer a dependable review process to checking every line themselves;
+> - independent developers and small teams with limited capacity.
 >
-> 例如：不写代码的领域专家，懂代码但不懂设计或产品的开发者，懂设计但不懂代码的设计师，不想亲自逐行看代码的人，以及独立开发者和人手不够的团队。
+> 例如：
+>
+> - 没有编程专业背景的领域专家；
+> - 擅长编程、但在设计和产品方面经验较少的开发者；
+> - 对产品有清晰构想、但较少亲自写代码的设计师；
+> - 希望依靠可靠的审查流程、而不必亲自逐行检查代码的人；
+> - 独立开发者，以及人手有限的小团队。
 
 This repository holds the **trio-workflow** plugin, a delivery workflow with three roles:
 
@@ -23,17 +29,17 @@ Plan-level **stops** and batch-level **pull requests** work together: PRs with C
 
 ## Who it's for
 
-trio-workflow is for **anyone who cannot, or would rather not, cover every role of a software project alone**: planning, design, coding, review and testing.
+A software project calls for many roles: planning, design, coding, review and testing. trio-workflow is for **anyone who would welcome support in some of them**:
 
-- **Domain experts** (engineering, energy, finance, medicine, research, consulting) who know what a correct result looks like but do not code.
-- **Developers** who code well but have no designer or product manager.
-- **Designers** with a clear picture of the product but no coding skills.
-- **People who would rather not review code line by line.**
-- **Solo builders and short-staffed teams** who need the missing roles filled.
+- **Domain experts** (engineering, energy, finance, medicine, research, consulting) who know what a correct result looks like but have no programming background.
+- **Developers** who are strong in code but newer to design and product work.
+- **Designers** with a clear product vision who write little code themselves.
+- **People who prefer a dependable review process** to checking every line themselves.
+- **Independent developers and small teams** with limited capacity.
 
-trio fills the roles you lack with agents that check each other, and keeps you in charge of what gets built:
+trio covers the roles you would like support in with agents that check each other, and keeps you in charge of what gets built:
 
-| You may not have | trio provides |
+| Where you may want support | trio provides |
 | --- | --- |
 | The ability to read and review code | A second agent that reviews independently and backs every verdict with evidence |
 | Practice in writing product specifications | Plans written for you, where each requirement states what you will see, has a prototype and carries a default |

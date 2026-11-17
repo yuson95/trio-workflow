@@ -1,8 +1,8 @@
 # Quickstart
 
-This guide walks you through your first plan with trio. It assumes no programming background, so a domain expert who does not code can follow every step. Developers, designers, solo builders and small teams can skim the parts they already know.
+This guide walks you through your first plan with trio. It assumes no programming background, so domain experts from any field can follow every step. Developers, designers, independent developers and small teams can skim the parts they already know.
 
-Throughout, you stay in charge of what gets built and whether it is right. The agents fill the roles you lack and check each other.
+Throughout, you stay in charge of what gets built and whether it is right. The agents support you in the roles you choose to hand over, and check each other.
 
 [中文版](QUICKSTART_zh.md)
 
