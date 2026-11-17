@@ -22,7 +22,7 @@ If you want a whole app from one sentence without taking part in those moments, 
 | Say what you want, in your own words, with examples or screenshots from tools you like | Read or write code |
 | Answer a few decisions per stop; each has a default, so silence is fine | Write tests or fix test failures |
 | Look at the real pages when asked, and say what feels wrong | Resolve merge conflicts or manage branches |
-| Say the words that allow irreversible steps, such as "merge and push" | Remember the process: the agents follow the skill |
+| Say the words that allow irreversible steps, such as "merge and push" | Remember the process: trio tells the agents what to do |
 | Keep real client data out of the agents' test runs | |
 
 Expect about 10 to 30 minutes of your time per stop, and an hour or two for each walkthrough.
@@ -30,22 +30,40 @@ Expect about 10 to 30 minutes of your time per stop, and an hour or two for each
 ## What you need
 
 1. **Two agent sessions.** One will be the **reviewer**, which plans and checks; the other will be the **builder**, which writes the code. They can be two different tools (for example Claude Code and Codex) or two separate sessions of the same tool. Two different vendors check each other best.
-2. **The trio-workflow skill** installed in both tools (step 1 below).
-3. **Python 3.9 or later**, which the skill's small helper scripts need.
+2. **trio installed in both tools** (step 1 below).
+3. **Python 3.9 or later**, for trio's small helper scripts.
 4. **A project folder** for your app. If you do not have one yet, ask the reviewer to create it as a git repository; you do not need to learn git.
 5. **Some sample data that is not real**, or permission for the agents to make it up. The agents test only on made-up (synthetic) data.
 
 ## Seven steps
 
-### 1. Install the skill
+### 1. Install trio
 
-Download this repository, open a terminal in its folder, and run:
+trio is a plugin that carries one skill, the instructions your agents follow. Install it in both tools.
+
+**Claude Code**: run these two commands in a terminal.
 
 ```bash
-python tools/install_local.py install --target claude codex
+claude plugin marketplace add yuson95/trio-workflow
 ```
 
-Choose the targets that match your tools (`claude`, `codex`, `cursor`). For any other agent, put the full path of `plugins/trio-workflow/skills/trio-workflow/SKILL.md` into its instructions, as described in the plugin README.
+```bash
+claude plugin install trio-workflow@trio
+```
+
+**Codex, Cursor, or several tools at once**: download the repository, then copy trio into each tool.
+
+```bash
+git clone https://github.com/yuson95/trio-workflow.git
+```
+
+```bash
+python trio-workflow/tools/install_local.py install --target codex
+```
+
+Choose the targets that match your tools: `claude`, `codex`, `cursor`. Use one way per tool; installing both ways makes the tool see trio twice.
+
+**Any other agent**: put the full path of `plugins/trio-workflow/skills/trio-workflow/SKILL.md` into its instructions, as described in the plugin README.
 
 ### 2. Set up the project with the reviewer
 
@@ -117,6 +135,7 @@ When the final review says PASS, tell the reviewer "merge and push" (or "merge o
 | **synthetic data** | Made-up data that looks real; the only data agents test with |
 | **main** | The official version of your app; changes reach it only after your "merge" |
 | **handoff folder** | The folder where the plans, progress files and review results live |
+| **PR mode** | Optional: every batch becomes a pull request with automatic tests; stops stay as they are. Worth it once your project lives on GitHub |
 
 ## Common mistakes
 

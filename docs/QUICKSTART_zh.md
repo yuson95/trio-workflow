@@ -22,7 +22,7 @@
 | 用自己的话说清想要什么，最好附上例子，或你喜欢的工具的截图 | 读代码、写代码 |
 | 每个停点回答几个决定；每个都有默认值，不回答也可以 | 写测试、修测试 |
 | 让你看页面时去看，说出哪里不对劲 | 解决代码冲突、管理分支 |
-| 说出允许不可逆操作的那句话，比如“合并并推送” | 记住流程：agent 会按技能执行 |
+| 说出允许不可逆操作的那句话，比如“合并并推送” | 记住流程：trio 会告诉 agent 该做什么 |
 | 不让真实的客户数据进入 agent 的测试 | |
 
 每个停点大约占用你 10 到 30 分钟，每次走查一到两个小时。
@@ -34,22 +34,40 @@
    - 一个当**执行者**，负责写代码。
 
    可以是两个不同的工具（比如 Claude Code 和 Codex），也可以是同一个工具开两个独立的会话。两家不同的厂商互相检查，效果最好。
-2. **两个工具里都装好 trio-workflow 技能**，做法见下面第 1 步。
-3. **Python 3.9 或更高版本**：技能里的几个小脚本要用。
+2. **两个工具里都装好 trio**，做法见下面第 1 步。
+3. **Python 3.9 或更高版本**：trio 的几个小脚本要用。
 4. **一个放应用的项目文件夹**：还没有的话，让审查者帮你建成一个 git 仓库，你不需要学 git。
 5. **一些不真实的样例数据**，或者允许 agent 自己编。agent 只在编出来的数据（合成数据）上测试。
 
 ## 七个步骤
 
-### 1. 安装技能
+### 1. 安装 trio
 
-下载这个仓库，在它的文件夹里打开终端，运行：
+trio 是一个插件，里面装着一个技能，也就是 agent 要遵循的那套说明。两个工具里都要装。
+
+**Claude Code**：在终端里运行这两条命令。
 
 ```bash
-python tools/install_local.py install --target claude codex
+claude plugin marketplace add yuson95/trio-workflow
 ```
 
-按你用的工具选目标：`claude`、`codex`、`cursor`。其他 agent 的做法是：把 `plugins/trio-workflow/skills/trio-workflow/SKILL.md` 的完整路径写进它的指令里，具体见插件的 README。
+```bash
+claude plugin install trio-workflow@trio
+```
+
+**Codex、Cursor，或者一次装进好几个工具**：先下载仓库，再把 trio 复制进每个工具。
+
+```bash
+git clone https://github.com/yuson95/trio-workflow.git
+```
+
+```bash
+python trio-workflow/tools/install_local.py install --target codex
+```
+
+按你用的工具选目标：`claude`、`codex`、`cursor`。每个工具只用一种装法，两种都装，工具里会出现两份 trio。
+
+**其他 agent**：把 `plugins/trio-workflow/skills/trio-workflow/SKILL.md` 的完整路径写进它的指令里，具体见插件的 README。
 
 ### 2. 让审查者搭好项目
 
@@ -134,6 +152,7 @@ python tools/install_local.py install --target claude codex
 | **合成数据** | 编出来、看起来像真的数据；agent 只用它测试 |
 | **main** | 应用的正式版本；只有你说“合并”之后，改动才会进入它 |
 | **交接目录** | 存放方案、进度文件和审查结果的文件夹 |
+| **PR 模式** | 可选：每个批次都开一个带自动测试的 PR，停点照旧。项目放到 GitHub 上之后再考虑 |
 
 ## 常见错误
 

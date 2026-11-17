@@ -44,42 +44,36 @@ The scripts need Python 3.9 or later and nothing else.
 
 ## Install
 
-Pick one mode per tool. Installing both ways makes the tool see the skill twice.
+trio is a plugin that carries one skill, the instructions your agents follow. Pick one install mode per tool: installing both ways makes the tool see trio twice.
 
 ### Plugin mode
 
-The repository is a marketplace for Claude Code and for Codex. Get it first:
+The repository is a plugin marketplace named `trio`.
 
-```bash
-git clone https://github.com/yuson95/trio-workflow.git
-```
-
-Claude Code can also add the marketplace straight from GitHub:
+**Claude Code**, straight from GitHub:
 
 ```bash
 claude plugin marketplace add yuson95/trio-workflow
 ```
 
-**Claude Code**:
-
 ```bash
-claude plugin marketplace add <path to your trio-workflow checkout>
+claude plugin install trio-workflow@trio
 ```
 
+You can also run `/plugin` inside Claude Code and add the marketplace there. To install from a local checkout, give its path instead of `yuson95/trio-workflow`.
+
+**Codex**: clone the repository, add these lines to `~/.codex/config.toml`, then restart Codex.
+
 ```bash
-claude plugin install trio-workflow@trio-local
+git clone https://github.com/yuson95/trio-workflow.git
 ```
-
-You can also run `/plugin` inside Claude Code and add the marketplace there.
-
-**Codex**: add these lines to `~/.codex/config.toml`, then restart Codex.
 
 ```toml
-[marketplaces.trio-local]
+[marketplaces.trio]
 source_type = "local"
 source = '<path to your trio-workflow checkout>'
 
-[plugins."trio-workflow@trio-local"]
+[plugins."trio-workflow@trio"]
 enabled = true
 ```
 
@@ -87,11 +81,22 @@ enabled = true
 
 ### Copy mode
 
+From the root of a clone of the repository:
+
 ```bash
 python tools/install_local.py install --target claude codex cursor
 ```
 
 `check` reports copies that are out of date, and `remove` deletes them before you switch to plugin mode.
+
+## Delivery: local or PR mode
+
+Each project chooses in its `0_RULES`:
+
+- **local** (the default): batches merge on your machine, and nothing reaches the remote until you say "merge and push";
+- **pr**: every batch becomes a pull request with CI into `wip/<plan>`, and a plan PR carries the plan into `main`.
+
+Stops work the same in both modes. See `skills/trio-workflow/prs.md`.
 
 ### Any other agent (for example a Grok bot)
 

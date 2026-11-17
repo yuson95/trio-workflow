@@ -1,4 +1,4 @@
-# trio-workflow (repository)
+# trio-workflow
 
 > **For anyone building software with AI agents who would welcome support across the many roles a project needs.**
 > 写给借助 AI agent 开发软件、希望在项目的各个角色上都有可靠支持的人。
@@ -29,7 +29,7 @@ This repository holds the **trio-workflow** plugin, a delivery workflow with thr
 - one agent plans and reviews;
 - another agent builds.
 
-Plan-level **stops** and batch-level **pull requests** work together: PRs with CI guard the code, and stops guard your intent. The usage guide is [plugins/trio-workflow/README.md](plugins/trio-workflow/README.md).
+Plan-level **stops** guard your intent: fixed points where an independent review happens and you decide. Projects on GitHub can add batch-level **pull requests** with CI (PR mode) to guard the code between stops. The usage guide is [plugins/trio-workflow/README.md](plugins/trio-workflow/README.md).
 
 ## When trio fits
 
@@ -92,7 +92,7 @@ trio covers the roles you would like support in with agents that check each othe
 
 It also suits consultants and researchers who work with client data on their own machine, small teams whose results must be numerically right, and anyone who wants agents from two vendors to check each other.
 
-It is a poor fit for professional engineering teams that already run pull requests, CI and code review on GitHub (pstack or similar tools fit them better), and for throwaway prototypes where stops and documents cost more than they save. See [When trio fits](#when-trio-fits) for the one-sentence case.
+It adds little for teams that already staff every role with people and run their own review process (pstack or similar tools may suit them better), and for throwaway prototypes where stops and documents cost more than they save. See [When trio fits](#when-trio-fits) for the one-sentence case.
 
 **What it asks of you**: patience for a little process, basic comfort with folders and a terminal, usually two agent subscriptions, and synthetic sample data.
 
@@ -100,7 +100,7 @@ It is a poor fit for professional engineering teams that already run pull reques
 
 New to trio? Read the step-by-step guide: **[docs/QUICKSTART.md](docs/QUICKSTART.md)** · **[中文版 docs/QUICKSTART_zh.md](docs/QUICKSTART_zh.md)**. In short:
 
-1. Install the skill in both tools: `python tools/install_local.py install --target claude codex`.
+1. Install trio in both tools. In Claude Code: `claude plugin marketplace add yuson95/trio-workflow`, then `claude plugin install trio-workflow@trio`. For Codex and Cursor, see the guide.
 2. In the reviewer, say "Set up the trio workflow for this project", and answer its questions; the defaults are fine.
 3. Describe what you want; confirm the prototypes in the plan.
 4. Paste the kickoff prompt into the builder; it works until the first stop.
@@ -117,12 +117,12 @@ The plate is drawn as a metro map:
 - each role is a line;
 - each action is a station;
 - each stop is an interchange where all three lines meet;
-- during building, the builder's line splits into worker tracks, and each square on them is one batch pull request with CI.
+- during building, the builder's line splits into worker tracks; in PR mode each square on them is one batch pull request with CI.
 
 - English: [PNG](docs/workflow/trio-workflow.png) · [PDF](docs/workflow/trio-workflow.pdf)
 - 中文: [PNG](docs/workflow/trio-workflow_zh.png) · [PDF](docs/workflow/trio-workflow_zh.pdf)
 
-The plates are drawn by [docs/workflow/draw_workflow.py](docs/workflow/draw_workflow.py), which needs matplotlib. It fails when a caption overflows its cell, so redraw and commit the plates whenever the workflow changes. The visual language is described in [docs/workflow/DESIGN_PHILOSOPHY.md](docs/workflow/DESIGN_PHILOSOPHY.md).
+The plates are drawn by [docs/workflow/draw_workflow.py](docs/workflow/draw_workflow.py), which needs matplotlib. It fails when a label leaves the canvas or overlaps another label, so redraw and commit the plates whenever the workflow changes. The visual language is described in [docs/workflow/DESIGN_PHILOSOPHY.md](docs/workflow/DESIGN_PHILOSOPHY.md).
 
 ## About the author
 
@@ -148,12 +148,15 @@ My longer profile is at [yuson95.github.io](https://yuson95.github.io); parts of
 | Path | Content |
 | --- | --- |
 | `plugins/trio-workflow/` | The plugin: the skill, its scripts, and manifests for Claude Code (`.claude-plugin`), Codex (`.codex-plugin`), Cursor (`.cursor-plugin`) and generic agents (`plugin.json`) |
-| `.claude-plugin/marketplace.json` | Local Claude Code marketplace `trio-local` |
-| `.agents/plugins/marketplace.json` | Local Codex marketplace `trio-local` |
+| `.claude-plugin/marketplace.json` | Claude Code marketplace `trio` |
+| `.agents/plugins/marketplace.json` | Codex marketplace `trio` |
 | `tools/install_local.py` | Copy mode: install, check or remove the skill in `~/.claude`, `~/.codex` and `~/.cursor` |
-| `tests/` | Behavior tests for the scripts, with sample plans |
+| `tests/` | Behavior tests for the scripts and the installer, with sample plans |
+| `.github/workflows/tests.yml` | Runs the tests on Linux and Windows for every push and pull request |
+| `docs/QUICKSTART.md`, `docs/QUICKSTART_zh.md` | Step-by-step guides in English and Chinese |
 | `docs/workflow/` | The workflow plate in English and Chinese (PNG, PDF) and the script that draws it |
 | `CHANGELOG.md` | Versions |
+| `LICENSE` | MIT |
 
 ## Development
 
@@ -168,8 +171,9 @@ Release a new version:
 1. Edit the skill under `plugins/trio-workflow/skills/trio-workflow/`.
 2. Raise `version` in the four manifests.
 3. Add a `CHANGELOG.md` entry.
-4. Run the tests.
-5. Commit.
+4. If the workflow changed, redraw the plates with `python docs/workflow/draw_workflow.py --lang en` and `--lang zh`.
+5. Run the tests and `claude plugin validate plugins/trio-workflow`.
+6. Commit and push. CI runs the tests on Linux and Windows.
 
 If you use copy mode, then run:
 
