@@ -51,7 +51,15 @@ claude plugin marketplace add yuson95/trio-workflow
 claude plugin install trio-workflow@trio
 ```
 
-**Codex, Cursor, or several tools at once**: download the repository, then copy trio into each tool.
+**Several tools with one command** (Claude Code, Codex, Cursor; needs Node.js 22.20 or later): this uses the open `skills` installer from Vercel.
+
+```bash
+npx skills add yuson95/trio-workflow -g -a claude-code -a codex -y --copy
+```
+
+Add `-a cursor` for Cursor. Later, `npx skills update -g` fetches the newest trio. The installer sends anonymous usage statistics unless you set `DISABLE_TELEMETRY=1`.
+
+**Without Node.js**: download the repository, then copy trio into each tool.
 
 ```bash
 git clone https://github.com/yuson95/trio-workflow.git
@@ -61,7 +69,9 @@ git clone https://github.com/yuson95/trio-workflow.git
 python trio-workflow/tools/install_local.py install --target codex
 ```
 
-Choose the targets that match your tools: `claude`, `codex`, `cursor`. Use one way per tool; installing both ways makes the tool see trio twice.
+Choose the targets that match your tools: `claude`, `codex`, `cursor`.
+
+Use **one way per tool**: installing two ways makes the tool see trio twice.
 
 **Any other agent**: put the full path of `plugins/trio-workflow/skills/trio-workflow/SKILL.md` into its instructions, as described in the plugin README.
 

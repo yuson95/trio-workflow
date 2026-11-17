@@ -79,6 +79,20 @@ enabled = true
 
 **Cursor**: the plugin folder carries `.cursor-plugin/plugin.json`, the same format pstack uses. Add it as a local plugin through Cursor's plugin settings, or use copy mode.
 
+### npx mode
+
+The open [`skills`](https://github.com/vercel-labs/skills) installer from Vercel finds trio's skill in this repository and installs it into many agents with one command. It needs Node.js 22.20 or later.
+
+```bash
+npx skills add yuson95/trio-workflow -g -a claude-code -a codex -y --copy
+```
+
+- Add `-a cursor` for Cursor.
+- `npx skills check -g` reports newer versions, `npx skills update -g` installs them, and `npx skills remove trio-workflow -g` uninstalls trio.
+- `--copy` writes plain copies instead of symlinks, which avoids symlink permission issues on Windows.
+- The installer sends anonymous usage statistics unless `DISABLE_TELEMETRY=1` is set.
+- For Codex it installs into `~/.agents/skills/`.
+
 ### Copy mode
 
 From the root of a clone of the repository:

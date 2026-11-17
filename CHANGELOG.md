@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.4.3 (2026-11-17)
+
+- Documented npx mode: `npx skills add yuson95/trio-workflow -g -a claude-code -a codex -y --copy`, using Vercel's open `skills` installer, which finds trio's skill unchanged. The full cycle (list, install, check, update, remove) was tested in an isolated home with telemetry off. The installed files match the repository byte for byte.
+
 ## 0.4.2 (2026-11-17)
 
 - The marketplace is now named `trio`; it was `trio-local`. Install with `claude plugin marketplace add yuson95/trio-workflow`, then `claude plugin install trio-workflow@trio`.

@@ -55,7 +55,15 @@ claude plugin marketplace add yuson95/trio-workflow
 claude plugin install trio-workflow@trio
 ```
 
-**Codex、Cursor，或者一次装进好几个工具**：先下载仓库，再把 trio 复制进每个工具。
+**一条命令装进好几个工具**（Claude Code、Codex、Cursor；需要 Node.js 22.20 或更高版本）：用的是 Vercel 开源的 `skills` 安装工具。
+
+```bash
+npx skills add yuson95/trio-workflow -g -a claude-code -a codex -y --copy
+```
+
+要装进 Cursor，就再加 `-a cursor`。以后运行 `npx skills update -g`，就能更新到最新的 trio。这个安装工具默认会发送匿名使用统计，设置 `DISABLE_TELEMETRY=1` 可以关掉。
+
+**没有 Node.js**：先下载仓库，再把 trio 复制进每个工具。
 
 ```bash
 git clone https://github.com/yuson95/trio-workflow.git
@@ -65,7 +73,9 @@ git clone https://github.com/yuson95/trio-workflow.git
 python trio-workflow/tools/install_local.py install --target codex
 ```
 
-按你用的工具选目标：`claude`、`codex`、`cursor`。每个工具只用一种装法，两种都装，工具里会出现两份 trio。
+按你用的工具选目标：`claude`、`codex`、`cursor`。
+
+**每个工具只用一种装法**：用了两种，工具里会出现两份 trio。
 
 **其他 agent**：把 `plugins/trio-workflow/skills/trio-workflow/SKILL.md` 的完整路径写进它的指令里，具体见插件的 README。
 

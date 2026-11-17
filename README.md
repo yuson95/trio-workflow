@@ -100,7 +100,7 @@ It adds little for teams that already staff every role with people and run their
 
 New to trio? Read the step-by-step guide: **[docs/QUICKSTART.md](docs/QUICKSTART.md)** · **[中文版 docs/QUICKSTART_zh.md](docs/QUICKSTART_zh.md)**. In short:
 
-1. Install trio in both tools. In Claude Code: `claude plugin marketplace add yuson95/trio-workflow`, then `claude plugin install trio-workflow@trio`. For Codex and Cursor, see the guide.
+1. Install trio in both tools. With Node.js: `npx skills add yuson95/trio-workflow -g -a claude-code -a codex -y --copy`. Claude Code alone: `claude plugin marketplace add yuson95/trio-workflow`, then `claude plugin install trio-workflow@trio`. Other ways are in the guide.
 2. In the reviewer, say "Set up the trio workflow for this project", and answer its questions; the defaults are fine.
 3. Describe what you want; confirm the prototypes in the plan.
 4. Paste the kickoff prompt into the builder; it works until the first stop.
