@@ -52,7 +52,7 @@ A worker running in a tool where pstack is not installed uses the built-in rules
 
 **Out: what the worker returns**:
 
-- one message to the lead per unit, when the unit ends: the handoff path and `DONE`, `BLOCKED` or `NEEDS_DECISION`, nothing in between;
+- one message to the lead per unit, when the unit ends: the handoff path, `DONE`, `BLOCKED` or `NEEDS_DECISION`, and the tool-call count so far; nothing in between;
 
 - commits on the batch branch only, ordered so they read as an argument (failing test then fix, subtraction then reshape, baseline then treatment);
 - a handoff of at most 30 lines in the template of [builder.md](builder.md);

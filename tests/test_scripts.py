@@ -245,5 +245,57 @@ class UsageGuardTests(unittest.TestCase):
         self.assertEqual(self.guard("--left", "150").returncode, 2)
 
 
+def _iso(seconds_ago):
+    return time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(time.time() - seconds_ago))
+
+
+def _thread_rows(meta, contexts, last_seconds_ago):
+    rows = [json.dumps({"timestamp": _iso(last_seconds_ago + 600), "type": "session_meta", "payload": meta})]
+    for i, context in enumerate(contexts):
+        ago = last_seconds_ago + 10 * (len(contexts) - 1 - i)
+        rows.append(json.dumps({"timestamp": _iso(ago), "type": "token_usage_record",
+                                "payload": {"response_id": f"r{i}", "usage": {"input_tokens": context}}}))
+    return rows
+
+
+class UsageGuardThreadTests(unittest.TestCase):
+    """--threads lists live Codex threads with their current context, so the lead can retire workers."""
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.home = Path(self.tmp.name)
+        self.day = self.home / "sessions" / time.strftime("%Y/%m/%d", time.gmtime())
+        self.day.mkdir(parents=True)
+
+    def tearDown(self):
+        self.tmp.cleanup()
+
+    def write(self, name, rows, mtime=None):
+        path = self.day / name
+        path.write_text("\n".join(rows) + "\n", encoding="utf-8")
+        if mtime is not None:
+            os.utime(path, (mtime, mtime))
+
+    def test_live_threads_show_context_calls_and_over_cap(self):
+        self.write("lead.jsonl", _thread_rows({"id": "01a1eb6d-0000"}, [30_000, 90_000, 210_000], 60))
+        self.write("worker.jsonl", _thread_rows({"id": "x", "agent_path": "/root/w1"}, [30_000, 60_000], 30))
+        result = run("usage_guard.py", "--codex-home", str(self.home), "--left", "80", "--threads")
+        self.assertEqual(result.returncode, 0, result.stdout)
+        self.assertIn("THREAD OVER lead 01a1eb6d: context 210k tokens, 3 calls", result.stdout)
+        self.assertIn("THREAD ok   /root/w1: context 60k tokens, 2 calls", result.stdout)
+
+    def test_activity_comes_from_the_log_not_the_file_time(self):
+        # Windows may leave an open log's modified time at its creation; the last row decides.
+        self.write("open.jsonl", _thread_rows({"agent_path": "/root/busy"}, [200_000], 30), mtime=time.time() - 3 * 86400)
+        self.write("idle.jsonl", _thread_rows({"agent_path": "/root/idle"}, [40_000], 5 * 3600))
+        result = run("usage_guard.py", "--codex-home", str(self.home), "--left", "80", "--threads", "--cap", "250000")
+        self.assertIn("THREAD ok   /root/busy: context 200k tokens", result.stdout)
+        self.assertNotIn("/root/idle", result.stdout)
+
+    def test_no_live_threads(self):
+        result = run("usage_guard.py", "--codex-home", str(self.home), "--left", "80", "--threads")
+        self.assertIn("THREADS none active", result.stdout)
+
+
 if __name__ == "__main__":
     unittest.main()

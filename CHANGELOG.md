@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.7.1 (2026-11-18)
+
+Fixes to the worker lifetime rule from 0.7.0.
+
+- Wall time no longer ends a worker. Waiting for the lock or a 45-minute check adds no context, so the limit is now about 150 of the worker's own tool calls, with one long wait counting as one call.
+- Before it ends, a worker commits its work as `wip:` on the batch branch, and its handoff gains two lines: what it tried and ruled out, and, for bug-fix and investigation batches, the open hypotheses.
+- Bug-fix and investigation batches get a 250k-token cap instead of 150k, because their value lies in the hypotheses they have built up.
+- `usage_guard.py --threads` lists each live Codex thread with its current context and call count, and marks threads over `--cap`, so the lead retires workers on a measured number. Activity comes from the newest log row, not the file's modified time, which Windows can leave stale while Codex keeps the log open. Worker unit messages carry their call count for tools without such a record.
+
 ## 0.7.0 (2026-11-18)
 
 Usage rules, after a day on which a parallel builder used 28% of a weekly Codex window in eight hours. The skill text itself was 3–4% of that; the rest came from long-lived workers whose contexts reached 300k to 450k tokens, and from 658 messages between agents, each of which costs a call to send and a call to wake the receiver.

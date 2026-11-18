@@ -3,7 +3,7 @@ name: trio-workflow
 description: Trio workflow. An operator decides, a reviewer agent plans and gives independent verdicts at stops, and a builder agent builds in batches with evidence; any agents can take the roles. Use it to set up a project, draft a plan or change request, review a stop, design or small change ("审查…停点N", "复审", "看一下设计", "看一下小改"), merge or clean up ("合并并推送", "只合并不推送", "做收尾"), or run, resume or pause a builder, with or without pull requests.
 license: MIT
 metadata:
-  version: "0.7.0"
+  version: "0.7.1"
   repository: https://github.com/yuson95/trio-workflow
 ---
 
@@ -57,7 +57,7 @@ trio is the outer layer: plans, stops, reviews, merges and the operator's decisi
 | `heavy_lock.py --lock <path> run --owner <session> -- <command>` | Run a heavy check under the machine-wide lock |
 | `log_decision.py <file> <phase> <decision> <why> <evidence> <result>` | Append a row to `<KEY>_DECISIONS.tsv` |
 | `screenshot_sheet.py <evidence dir> --states empty full many narrow` | Build the page × state contact sheet |
-| `usage_guard.py [--left <percent>]` | Before a fan-out: `FULL`, `ONE_WORKER` or `PAUSE`, from the usage left |
+| `usage_guard.py [--left <percent>] [--threads]` | Before a fan-out: `FULL`, `ONE_WORKER` or `PAUSE`, from the usage left; `--threads` lists each worker's context |
 
 ## 3. File names
 
