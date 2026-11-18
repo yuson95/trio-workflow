@@ -12,6 +12,8 @@ Generic process, parallel and token rules live in the trio-workflow skill (`buil
 4. **Verification recipe**: path to Launch / Doctor / Drive / Evidence / Cleanup and the feature map: <…>.
 5. **Data and isolation**: data root <…>; isolated instance command <own port, own projects folder>; the operator's service: {{service}} (never touch it).
 6. **Parallel**: worker cap 3; hotspot files: <…>.
+   - Worker lifetime: one batch, at most 150k tokens of context or about an hour.
+   - Usage (`scripts/usage_guard.py`): one worker below 30% left; pause below 10% left.
 7. **UI conventions document**: <path>.
 8. **Project-specific rules**: formatting, provenance, path rules, guard tests.
 9. **Known issues**.

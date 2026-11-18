@@ -47,9 +47,12 @@ A worker running in a tool where pstack is not installed uses the built-in rules
 - owned files, untouched files, append-only files;
 - forbidden actions: push, PR, merge, touching the operator's service or client data;
 - the evidence to produce: commands with their expected output, live scenarios from the verification recipe, a perf rule if one applies;
-- the previous handoff, and the lock file path for heavy checks.
+- the previous handoff, and the lock file path for heavy checks;
+- the lifetime cap and the message budget from [builder.md](builder.md) token rules 8 and 9.
 
 **Out: what the worker returns**:
+
+- one message to the lead per unit, when the unit ends: the handoff path and `DONE`, `BLOCKED` or `NEEDS_DECISION`, nothing in between;
 
 - commits on the batch branch only, ordered so they read as an argument (failing test then fix, subtraction then reshape, baseline then treatment);
 - a handoff of at most 30 lines in the template of [builder.md](builder.md);

@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.7.0 (2026-11-18)
+
+Usage rules, after a day on which a parallel builder used 28% of a weekly Codex window in eight hours. The skill text itself was 3–4% of that; the rest came from long-lived workers whose contexts reached 300k to 450k tokens, and from 658 messages between agents, each of which costs a call to send and a call to wake the receiver.
+
+- **Worker lifetime** (`builder.md` token rule 8): a worker ends when its batch is integrated, when its context passes 150k tokens, or after about an hour, and hands the rest to a fresh worker through its handoff. The lead renews itself the same way, through Pause and Resume.
+- **Message budget** (token rule 9): one message per unit, at its end, carrying the handoff path and `DONE`, `BLOCKED` or `NEEDS_DECISION`. Progress and requests go into the handoff file; the lead does not ask workers for status.
+- **Usage guard** (token rule 10, new `scripts/usage_guard.py`): before every fan-out and at every integration, the lead checks the usage left. Below 30% it runs one worker; below 10% it pauses, and Pause now names the usage guard as a trigger. The script reads Codex's own rate-limit record; for other tools it takes `--left <percent>` from the operator.
+- The `0_RULES` templates carry the lifetime cap and the thresholds; the kickoff and the batch contract in `layers.md` carry the budget. Six new tests cover the guard.
+
 ## 0.6.0 (2026-11-18)
 
 - trio now ships as a plain skill at `skills/trio-workflow/`, the standard layout for skill repositories. The skill's content is unchanged apart from one install line in `bootstrap.md`.

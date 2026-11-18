@@ -26,12 +26,14 @@ Role: Builder. The lead coordinates, integrates and reports, and never writes th
    - the files the worker may write (its owned files), and the files it must leave alone;
    - forbidden actions: push, merge into `main`, touching the operator's service or client data;
    - the evidence that proves done: commands with their expected output, live scenarios from the verification recipe, screenshots;
-   - the previous handoff.
+   - the previous handoff;
+   - the lifetime cap and the message budget (token rules 8 and 9).
 
    If you cannot name the evidence, the batch is not scoped yet. The worker starts by restating its goal, owned files and untouched files at the top of its handoff.
 4. **Start with one unit.** Take the first batch all the way through (kickoff, worker, verification, integration) before fanning out. A flawed kickoff then costs one worker instead of many.
 5. **Run in parallel by the plan's table.**
    - Start batches that have no dependency and no overlapping owned files together, up to the cap in `0_RULES` (default 3).
+   - Check usage before every fan-out and at every integration (token rule 10). Below the reduce threshold, run one batch at a time; below the pause threshold, pause.
    - Each worker gets its own worktree on a short path outside the repo, and its own local branch.
    - One writer per file. A worker that needs another batch's file writes the request into its handoff, and the owner makes the change.
    - Heavy checks (full check, solver tests, browser suites, timing runs, load reproduction) run one at a time, across every session on the machine, under the lock file named in `0_RULES`: `python <skill dir>/scripts/heavy_lock.py --lock <path> run --owner <session> --wait 7200 -- <command>`.
@@ -82,24 +84,37 @@ Use this when the operator pastes the resume prompt or says "continue <plan>". I
 5. **Verify inherited claims** on the real artifact before you build on them. A passing self-report from the previous session is not proof.
 6. Continue from step 3 of the main steps. Step 4 (start with one unit) applies only if no batch has been integrated yet.
 
-## Pause (on an explicit pause, going offline, or an imminent context limit)
+## Pause (on an explicit pause, going offline, an imminent context limit, or a `PAUSE` from the usage guard)
 
 1. Finish the current atomic step or back out of it. Start nothing new, and stop running workers.
 2. Take no irreversible action to pause.
 3. Commit uncommitted edits as one `wip:` commit on the current branch. If the tree is broken, say so in one line of the commit body.
 4. Update the progress file as the resume note: intent, progress, what is verified, current state, next steps, key files and gotchas. Point to the decision trail rather than duplicating it.
+5. Add a `pause` row to the decision trail with the reason. For a usage pause, tell the operator in one line how much is left and when the window resets.
 
 "Keep going" never triggers a pause.
 
 ## Token rules
 
-1. One session per plan. Workers are disposable; the lead keeps only handoffs and summaries.
+Every model call resends the whole context of the agent that makes it. A call at 400k tokens of context costs about twice one at 200k, and a message costs two calls: one to send, one to wake the receiver. Rules 8 to 10 keep contexts small and calls few.
+
+1. One lead session per plan. When the lead's own context passes the cap in rule 8, it pauses and continues in a fresh session through Resume. Workers are disposable; the lead keeps only handoffs and summaries.
 2. A batch handoff is at most 30 lines and is saved as `batch-notes/<batch>_HANDOFF.md`. The next worker reads only that handoff.
 3. The progress file is at most 60 lines. After compaction or a break, read it first.
 4. Read `CURRENT_STATUS.md` first; open history files by name, only when needed.
 5. The quick check selects tests by changed paths. Report summary lines only; on failure, report only the test names and a few assertion lines.
 6. Write logs to files and report their paths. Read only the plan sections for this batch.
 7. Searches respect `.ignore`. Never read single-line giant files whole.
+8. **Worker lifetime.** A worker ends when its batch is integrated, when its context passes the cap in `0_RULES` (default 150k tokens), or after about an hour of work, whichever comes first. Before it ends, it writes its handoff. The rest of the batch goes to a fresh worker that reads only that handoff. Size batches so one worker can finish within the cap. Never keep a worker alive to save its context.
+9. **Message budget.** A worker sends the lead one message per unit, when the unit ends: the handoff path and one status, `DONE`, `BLOCKED` or `NEEDS_DECISION`. It sends nothing in between.
+   - Progress goes into the handoff file.
+   - Requests to another batch's owner go into the handoff's request list; the lead passes them on at integration.
+   - The lead does not ask workers for status. It reads their handoff files and commits.
+10. **Usage.** Before every fan-out and at every integration, run `python <skill dir>/scripts/usage_guard.py` with the thresholds in `0_RULES` (defaults: one worker below 30% left, pause below 10% left).
+    - `FULL`: run up to the worker cap.
+    - `ONE_WORKER`: one batch at a time; start no parallel batches.
+    - `PAUSE`: follow Pause.
+    - The script reads Codex's own usage record. For other tools, pass `--left <percent>` with the number the operator reads from the tool's usage page. If no number is available, write "usage unknown" in the progress file and keep to one worker.
 
 ## Templates
 

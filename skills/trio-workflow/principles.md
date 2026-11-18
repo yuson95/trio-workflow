@@ -46,10 +46,10 @@ Each entry gives a trigger ("when") and an action ("do"). Most are adapted from 
 
 - **Guard the context window.**
   - When: large outputs, long files, repeated reads, fan-out.
-  - Do: route bulk work to workers, cap the scope of each phase, and keep summaries and file pointers in the main thread.
+  - Do: route bulk work to workers, cap the scope of each phase, and keep summaries and file pointers in the main thread. Every call resends the caller's whole context, so end workers before their context grows large, and pass file paths instead of long messages (trio).
 - **Fresh worker per task.**
   - When: new work, a fix round, a retry, the next queue item.
-  - Do: start a fresh worker with consolidated scope: the original brief, every later directive, the prior report and the branch. Reuse a worker only for state that lives in it, such as its checkout, uncommitted edits or a running process.
+  - Do: start a fresh worker with consolidated scope: the original brief, every later directive, the prior report and the branch. Reuse a worker only for state that lives in it, such as its checkout, uncommitted edits or a running process, and never past the lifetime cap in builder.md token rule 8.
 - **Read the diff, not the summary.**
   - When: a worker or a builder reports done.
   - Do: you own its output, so read the diff and the evidence. A verdict covers one commit; a new head needs a new verdict.
