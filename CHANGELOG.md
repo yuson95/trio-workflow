@@ -8,6 +8,7 @@ Fixes to the worker lifetime rule from 0.7.0.
 - Before it ends, a worker commits its work as `wip:` on the batch branch, and its handoff gains two lines: what it tried and ruled out, and, for bug-fix and investigation batches, the open hypotheses.
 - Bug-fix and investigation batches get a 250k-token cap instead of 150k, because their value lies in the hypotheses they have built up.
 - `usage_guard.py --threads` lists each live Codex thread with its current context and call count, and marks threads over `--cap`, so the lead retires workers on a measured number. Activity comes from the newest log row, not the file's modified time, which Windows can leave stale while Codex keeps the log open. Worker unit messages carry their call count for tools without such a record.
+- CI turns failing tests into error annotations (`.github/scripts/annotate_failures.py`). Job logs need a signed-in browser; annotations can be read from the public API.
 
 ## 0.7.0 (2026-11-18)
 
