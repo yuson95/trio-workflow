@@ -12,7 +12,8 @@ Generic process, parallel and token rules live in the trio-workflow skill (`buil
 4. **Verification recipe**: path to Launch / Doctor / Drive / Evidence / Cleanup and the feature map: <…>.
 5. **Data and isolation**: data root <…>; isolated instance command <own port, own projects folder>; the operator's service: {{service}} (never touch it).
 6. **Parallel**: worker cap 3; hotspot files: <…>.
-   - Worker lifetime: one batch, at most 150k tokens of context (250k for bug-fix and investigation batches) or about 150 tool calls; waiting does not count. At 80% a worker starts no new unit.
+   - Batches sized for about 100 tool calls each, split by module, test group or about 20 list items.
+   - Worker lifetime: one batch, at most about 150 tool calls (waiting does not count) or the context cap (Codex 150k, Claude Code 350k; bug-fix and investigation batches 225 calls and 250k / 500k). At 80% a worker starts no new unit.
    - Usage (`scripts/usage_guard.py`): one worker below 30% left; pause below 10% left.
 7. **UI conventions document**: <path>.
 8. **Project-specific rules**: formatting, provenance, path rules, guard tests.

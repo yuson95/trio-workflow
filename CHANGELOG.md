@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.7.3 (2026-11-18)
+
+Calibrated on a Claude Code builder's first evening: 7 workers, 733 calls. Handover ramp-up cost 7% of their tokens, far less than letting contexts keep growing, but one theme-sized batch ("fix every failure") ran through four workers.
+
+- **Batch size**: the lead sizes each batch so one worker finishes it in about 100 tool calls. Batches are split by module, test group or about 20 list items, never by theme alone. A batch that needs a successor is split before it is handed on.
+- **Caps per tool**: context grows about 0.4k tokens per call in Codex and about 1.8k in Claude Code, which also starts near 60k. The context cap is now 150k for Codex and 350k for Claude Code (250k and 500k for bug-fix and investigation batches, which also get about 225 calls). Where the lead cannot read a worker's context, the call count governs.
+- **Reuse the quick check**: the handoff records the last quick-check log and its commit. A successor whose branch head matches reuses that log, then makes targeted checks of its predecessor's claims.
+- **Usage source**: `usage_guard.py` without `--left` reads Codex's record only. A Claude Code lead reads its plan windows with the desktop app's usage tool and passes the smallest percent left as `--left`.
+
 ## 0.7.2 (2026-11-18)
 
 Four handover rules that protect quality under the worker lifetime cap. A fresh worker loses its predecessor's working memory; these keep what matters.
