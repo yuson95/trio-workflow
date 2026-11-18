@@ -23,13 +23,15 @@
 >
 > **前提**：关键环节始终由你把关：方案、原型、每个停点的决定、走查和合并。trio 不是“一句话做出整个应用”的工具。
 
-This repository holds the **trio-workflow** plugin, a delivery workflow with three roles:
+This repository holds the **trio-workflow** skill, a delivery workflow with three roles:
 
 - you, the operator, decide;
 - one agent plans and reviews;
 - another agent builds.
 
-Plan-level **stops** guard your intent: fixed points where an independent review happens and you decide. Projects on GitHub can add batch-level **pull requests** with CI (PR mode) to guard the code between stops. The usage guide is [plugins/trio-workflow/README.md](plugins/trio-workflow/README.md).
+Any agent can take either agent role: Claude, Codex, Grok, Cursor, or two sessions of one tool. The skill is a single folder, [skills/trio-workflow/](skills/trio-workflow/), in the open Agent Skills format, so every agent that reads skills can use it.
+
+Plan-level **stops** guard your intent: fixed points where an independent review happens and you decide. Projects on GitHub can add batch-level **pull requests** with CI (PR mode) to guard the code between stops.
 
 ## When trio fits
 
@@ -100,7 +102,7 @@ It adds little for teams that already staff every role with people and run their
 
 New to trio? Read the step-by-step guide: **[docs/QUICKSTART.md](docs/QUICKSTART.md)** · **[中文版 docs/QUICKSTART_zh.md](docs/QUICKSTART_zh.md)**. In short:
 
-1. Install trio in both tools. With Node.js: `npx skills add yuson95/trio-workflow -g -a claude-code -a codex -y --copy`. Claude Code alone: `claude plugin marketplace add yuson95/trio-workflow`, then `claude plugin install trio-workflow@trio`. Other ways are in the guide.
+1. Install trio in both tools: `npx skills add yuson95/trio-workflow -g -a claude-code -a codex -y --copy` (needs Node.js 22.20 or later). Without Node.js, see [Install](#install).
 2. In the reviewer, say "Set up the trio workflow for this project", and answer its questions; the defaults are fine.
 3. Describe what you want; confirm the prototypes in the plan.
 4. Paste the kickoff prompt into the builder; it works until the first stop.
@@ -123,6 +125,111 @@ The plate is drawn as a metro map:
 - 中文: [PNG](docs/workflow/trio-workflow_zh.png) · [PDF](docs/workflow/trio-workflow_zh.pdf)
 
 The plates are drawn by [docs/workflow/draw_workflow.py](docs/workflow/draw_workflow.py), which needs matplotlib. It fails when a label leaves the canvas or overlaps another label, so redraw and commit the plates whenever the workflow changes. The visual language is described in [docs/workflow/DESIGN_PHILOSOPHY.md](docs/workflow/DESIGN_PHILOSOPHY.md).
+
+## Install
+
+trio is a skill: one folder of instructions and scripts that your agents read. Install it in every tool that takes a role. Use one way per tool; installing two ways makes the tool see trio twice.
+
+### With Node.js (recommended)
+
+The open [`skills`](https://github.com/vercel-labs/skills) installer from Vercel installs trio into many agents with one command. It needs Node.js 22.20 or later.
+
+```bash
+npx skills add yuson95/trio-workflow -g -a claude-code -a codex -y --copy
+```
+
+- Add `-a cursor` for Cursor; `npx skills add --help` lists the other agents.
+- `npx skills check -g` reports newer versions, `npx skills update -g` installs them, and `npx skills remove trio-workflow -g` uninstalls trio.
+- `--copy` writes plain copies instead of symlinks, which avoids symlink permission issues on Windows.
+- The installer sends anonymous usage statistics unless `DISABLE_TELEMETRY=1` is set.
+- Claude Code reads the skill from `~/.claude/skills/`; Codex, Cursor and several other agents read it from `~/.agents/skills/`.
+
+### Without Node.js
+
+Clone the repository, then copy the skill into each tool:
+
+```bash
+git clone https://github.com/yuson95/trio-workflow.git
+```
+
+```bash
+python trio-workflow/tools/install_local.py install --target claude codex
+```
+
+The targets are `claude`, `codex` and `cursor`. `check` reports copies that are out of date, and `remove` deletes them.
+
+### Any other agent (for example a Grok bot)
+
+Put the absolute path of `skills/trio-workflow/SKILL.md` into the agent's system prompt or the repo's `AGENTS.md`, with this line: "Read and follow this skill; open the branch files it names when they apply."
+
+### Upgrading from the plugin (0.5.0 and earlier)
+
+Up to 0.5.0, trio also shipped as a plugin for Claude Code and Codex. If you installed it that way, remove the plugin first, then install the skill as above. In Claude Code:
+
+```bash
+claude plugin uninstall trio-workflow@trio
+```
+
+```bash
+claude plugin marketplace remove trio
+```
+
+In Codex, delete the `[marketplaces.trio]` and `[plugins."trio-workflow@trio"]` entries from `~/.codex/config.toml`.
+
+If you installed with `npx skills`, nothing changes: `npx skills update -g` finds the skill at its new path.
+
+## What is inside
+
+| Path in `skills/trio-workflow/` | Content |
+| --- | --- |
+| `SKILL.md` | Entry point: roles, routing, rules, principles index, scripts |
+| `bootstrap.md` | Set up a project: handoff directory, role table, verification recipe |
+| `planning.md` | Plans and change requests, including the parallel design (ownership table, hotspots, waves) |
+| `review.md` | Stop reviews, re-reviews, design reviews, small changes; independence rules; verdicts bound to a commit |
+| `merge.md` | Merge, push, restart, cleanup, retro |
+| `builder.md` | Builder lead and workers: kickoff, integration, stalls, stops, resume, pause, token rules |
+| `layers.md` | Outer/inner contract and the pstack adapter |
+| `prs.md` | Stops and pull requests together: batch PRs with CI into `wip/<plan>`, stops for independent review, a plan PR into `main` |
+| `principles.md` | The principles, each with a trigger and an action |
+| `ui-acceptance.md` | UI acceptance: prototypes before code, screenshot matrix, visual review, walkthrough findings turned into structure |
+| `templates/en/`, `templates/zh/` | The handoff files (`00_START_HERE`, `00_FLOW`, `0_RULES`, `PROMPTS`) in English and Chinese |
+| `scripts/bootstrap_handoff.py` | Creates a project's handoff folder from the templates, with names filled in; never overwrites |
+| `scripts/heavy_lock.py` | Machine-wide lock so heavy checks from different sessions never overlap |
+| `scripts/log_decision.py` | Appends one row to a plan's decision trail |
+| `scripts/check_plan.py` | Checks a plan's structure (types, "You see" lines, verification, prototypes for review-gated items, defaults, file ownership) |
+| `scripts/screenshot_sheet.py` | Builds the page × state contact sheet, `main` beside the candidate |
+| `agents/openai.yaml` | Display name and short description for Codex |
+| `LICENSE` | MIT, so every installed copy keeps the notice |
+
+The scripts need Python 3.10 or later and nothing else.
+
+## Two layers
+
+| Layer | Decides | Provided by |
+| --- | --- | --- |
+| Outer | what gets built, when work stops for review, whether it lands, what the operator decides | trio |
+| Inner | how a worker writes and proves the code inside one batch | [pstack](https://github.com/cursor/plugins/tree/main/pstack) when installed, otherwise trio's built-in rules |
+
+The contract between the layers is in `layers.md`:
+
+- the kickoff a batch receives and what it returns;
+- which pstack playbook each batch type uses (feature, bug fix, refactoring, perf, hillclimb, visual parity, prototype, investigation);
+- which pstack steps are switched off under trio, such as opening PRs, merging, or using cloud VMs with client data.
+
+To use pstack as the inner layer:
+
+1. Install pstack in the tools that run the builder's workers, and in the reviewer's tool if you want its interrogate and arena skills.
+2. In the project's `0_RULES`, set `Inner layer: pstack (installed in <tools>)`.
+3. Tag every requirement in a plan with a type. The builder copies the matching playbook into each batch kickoff.
+
+## Delivery: local or PR mode
+
+Each project chooses in its `0_RULES`:
+
+- **local** (the default): batches merge on your machine, and nothing reaches the remote until you say "merge and push";
+- **pr**: every batch becomes a pull request with CI into `wip/<plan>`, and a plan PR carries the plan into `main`.
+
+Stops work the same in both modes. See `prs.md`.
 
 ## About the author
 
@@ -147,11 +254,9 @@ My longer profile is at [yuson95.github.io](https://yuson95.github.io); parts of
 
 | Path | Content |
 | --- | --- |
-| `plugins/trio-workflow/` | The plugin: the skill, its scripts, and manifests for Claude Code (`.claude-plugin`), Codex (`.codex-plugin`), Cursor (`.cursor-plugin`) and generic agents (`plugin.json`) |
-| `.claude-plugin/marketplace.json` | Claude Code marketplace `trio` |
-| `.agents/plugins/marketplace.json` | Codex marketplace `trio` |
+| `skills/trio-workflow/` | The skill; see [What is inside](#what-is-inside) |
 | `tools/install_local.py` | Copy mode: install, check or remove the skill in `~/.claude`, `~/.codex` and `~/.cursor` |
-| `tests/` | Behavior tests for the scripts and the installer, plus repository self-checks (versions, links, skill size, templates) |
+| `tests/` | Behavior tests for the scripts and the installer, plus repository self-checks (version, links, skill size, templates, license) |
 | `.github/workflows/tests.yml` | Runs the tests on Linux and Windows for every push and pull request |
 | `docs/QUICKSTART.md`, `docs/QUICKSTART_zh.md` | Step-by-step guides in English and Chinese |
 | `docs/workflow/` | The workflow plate in English and Chinese (PNG, PDF) and the script that draws it |
@@ -168,15 +273,35 @@ python -m unittest discover -s tests
 
 Release a new version:
 
-1. Edit the skill under `plugins/trio-workflow/skills/trio-workflow/`.
-2. Raise `version` in the four manifests.
+1. Edit the skill under `skills/trio-workflow/`.
+2. Raise `metadata.version` in the front matter of `SKILL.md`.
 3. Add a `CHANGELOG.md` entry.
 4. If the workflow changed, redraw the plates with `python docs/workflow/draw_workflow.py --lang en` and `--lang zh`.
-5. Run the tests and `claude plugin validate plugins/trio-workflow`. The self-checks fail when the versions disagree, a link breaks, the skill description passes 450 characters, `SKILL.md` passes 110 lines, or a branch file or script is not reachable from `SKILL.md`.
+5. Run the tests. The self-checks fail when the version in `SKILL.md` and the changelog disagree, a link breaks, the skill description passes 450 characters, `SKILL.md` passes 110 lines, or a branch file or script is not reachable from `SKILL.md`.
 6. Commit and push. CI runs the tests on Linux and Windows.
 
 Then update your installed copy with `npx skills update -g`, or, in copy mode, with `python tools/install_local.py install`.
 
+## Origin and credits
+
+The workflow comes from building a private energy-consulting tool in November 2026: a reviewer agent and a builder agent from different vendors, plans with stops, operator walkthroughs, check tiers, and token rules.
+
+Several practices are adapted from pstack by poteto (MIT licence, <https://github.com/cursor/plugins/tree/main/pstack>):
+
+- restate first;
+- prove it works;
+- explain the number;
+- sequence verifiable units;
+- separate before serializing;
+- encode lessons in structure;
+- fresh workers;
+- verdicts bound to a commit;
+- adversarial review;
+- the verification recipe;
+- the decision trail.
+
+The wording here is our own. pstack itself is not bundled; install it from its own source.
+
 ## License
 
-MIT, see [LICENSE](LICENSE). Practices adapted from pstack are credited in the plugin README; pstack is MIT-licensed as well.
+MIT, see [LICENSE](LICENSE). The skill folder carries the same file. pstack is MIT-licensed as well.

@@ -7,7 +7,7 @@ import unittest
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-SCRIPT = ROOT / "plugins" / "trio-workflow" / "skills" / "trio-workflow" / "scripts" / "bootstrap_handoff.py"
+SCRIPT = ROOT / "skills" / "trio-workflow" / "scripts" / "bootstrap_handoff.py"
 FILES = ("00_START_HERE.md", "00_FLOW.md", "0_RULES.md", "PROMPTS.md")
 
 

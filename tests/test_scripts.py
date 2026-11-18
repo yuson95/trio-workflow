@@ -15,7 +15,7 @@ import unittest
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-SCRIPTS = ROOT / "plugins" / "trio-workflow" / "skills" / "trio-workflow" / "scripts"
+SCRIPTS = ROOT / "skills" / "trio-workflow" / "scripts"
 FIXTURES = Path(__file__).resolve().parent / "fixtures"
 
 

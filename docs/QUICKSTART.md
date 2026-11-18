@@ -39,19 +39,9 @@ Expect about 10 to 30 minutes of your time per stop, and an hour or two for each
 
 ### 1. Install trio
 
-trio is a plugin that carries one skill, the instructions your agents follow. Install it in both tools.
+trio is a skill: a folder with the instructions your agents follow. Install it in both tools.
 
-**Claude Code**: run these two commands in a terminal.
-
-```bash
-claude plugin marketplace add yuson95/trio-workflow
-```
-
-```bash
-claude plugin install trio-workflow@trio
-```
-
-**Several tools with one command** (Claude Code, Codex, Cursor; needs Node.js 22.20 or later): this uses the open `skills` installer from Vercel.
+**With Node.js** (22.20 or later): one command installs trio into Claude Code and Codex. It uses the open `skills` installer from Vercel.
 
 ```bash
 npx skills add yuson95/trio-workflow -g -a claude-code -a codex -y --copy
@@ -73,7 +63,7 @@ Choose the targets that match your tools: `claude`, `codex`, `cursor`.
 
 Use **one way per tool**: installing two ways makes the tool see trio twice.
 
-**Any other agent**: put the full path of `plugins/trio-workflow/skills/trio-workflow/SKILL.md` into its instructions, as described in the plugin README.
+**Any other agent**: put the full path of `skills/trio-workflow/SKILL.md` into its instructions, as described in the [README](../README.md#install).
 
 ### 2. Set up the project with the reviewer
 
@@ -160,4 +150,4 @@ When the final review says PASS, tell the reviewer "merge and push" (or "merge o
 ## Where to read more
 
 - The workflow plate, with the whole process on one page: [English](workflow/trio-workflow.png) · [中文](workflow/trio-workflow_zh.png)
-- The plugin guide, for installation details and pstack: [plugins/trio-workflow/README.md](../plugins/trio-workflow/README.md)
+- The README, for installation details, the files inside the skill, and pstack: [README.md](../README.md)

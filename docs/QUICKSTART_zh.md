@@ -43,19 +43,9 @@
 
 ### 1. 安装 trio
 
-trio 是一个插件，里面装着一个技能，也就是 agent 要遵循的那套说明。两个工具里都要装。
+trio 是一个技能：一个文件夹，里面是 agent 要遵循的那套说明。两个工具里都要装。
 
-**Claude Code**：在终端里运行这两条命令。
-
-```bash
-claude plugin marketplace add yuson95/trio-workflow
-```
-
-```bash
-claude plugin install trio-workflow@trio
-```
-
-**一条命令装进好几个工具**（Claude Code、Codex、Cursor；需要 Node.js 22.20 或更高版本）：用的是 Vercel 开源的 `skills` 安装工具。
+**有 Node.js**（22.20 或更高版本）：一条命令同时装进 Claude Code 和 Codex。用的是 Vercel 开源的 `skills` 安装工具。
 
 ```bash
 npx skills add yuson95/trio-workflow -g -a claude-code -a codex -y --copy
@@ -77,7 +67,7 @@ python trio-workflow/tools/install_local.py install --target codex
 
 **每个工具只用一种装法**：用了两种，工具里会出现两份 trio。
 
-**其他 agent**：把 `plugins/trio-workflow/skills/trio-workflow/SKILL.md` 的完整路径写进它的指令里，具体见插件的 README。
+**其他 agent**：把 `skills/trio-workflow/SKILL.md` 的完整路径写进它的指令里，具体见 [README](../README.md#install)。
 
 ### 2. 让审查者搭好项目
 
@@ -177,4 +167,4 @@ python trio-workflow/tools/install_local.py install --target codex
 ## 想了解更多
 
 - 整个流程画在一张图上：[中文](workflow/trio-workflow_zh.png) · [English](workflow/trio-workflow.png)
-- 插件说明，包括安装细节和 pstack：[plugins/trio-workflow/README.md](../plugins/trio-workflow/README.md)
+- README，包括安装细节、技能里有哪些文件，以及 pstack：[README.md](../README.md)

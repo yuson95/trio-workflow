@@ -2,7 +2,7 @@
 """Copy the trio-workflow skill into each tool's user skill folder, or check or remove those copies.
 
 This is "copy mode": the skill folder is copied to ~/.claude/skills, ~/.codex/skills
-or ~/.cursor/skills. Use it when you do not install the plugin through a marketplace.
+or ~/.cursor/skills. Use it when you cannot run `npx skills` (no Node.js).
 Never install both ways in one tool, or the tool sees the skill twice.
 
 Usage:
@@ -17,7 +17,7 @@ import shutil
 import sys
 from pathlib import Path
 
-SOURCE = Path(__file__).resolve().parents[1] / "plugins" / "trio-workflow" / "skills" / "trio-workflow"
+SOURCE = Path(__file__).resolve().parents[1] / "skills" / "trio-workflow"
 TARGETS = {
     "claude": Path.home() / ".claude" / "skills" / "trio-workflow",
     "codex": Path.home() / ".codex" / "skills" / "trio-workflow",

@@ -1,20 +1,16 @@
 """Repository self-checks: the things reviewed by hand before every release.
 
-Versions agree, marketplaces point at real plugins, links resolve, the skill
-stays small, nothing in the skill is orphaned, and both template languages
-carry the same files and placeholders.
+The repository is one plain skill, its version matches the changelog, links
+resolve, the skill stays small, nothing in the skill is orphaned, and both
+template languages carry the same files and placeholders.
 """
 
-import json
 import re
 import unittest
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-PLUGIN = ROOT / "plugins" / "trio-workflow"
-SKILL = PLUGIN / "skills" / "trio-workflow"
-MANIFESTS = [PLUGIN / ".claude-plugin" / "plugin.json", PLUGIN / ".codex-plugin" / "plugin.json",
-             PLUGIN / ".cursor-plugin" / "plugin.json", PLUGIN / "plugin.json"]
+SKILL = ROOT / "skills" / "trio-workflow"
 LINK = re.compile(r"\]\(([^)#\s]+)(?:#[^)]*)?\)")
 PLACEHOLDER = re.compile(r"\{\{([a-z_]+)\}\}")
 DESCRIPTION_LIMIT = 450
@@ -26,22 +22,21 @@ def markdown_files():
 
 
 class RepoTests(unittest.TestCase):
-    def test_all_manifests_share_the_changelog_version(self):
-        versions = {str(m.relative_to(ROOT)): json.loads(m.read_text(encoding="utf-8"))["version"] for m in MANIFESTS}
-        self.assertEqual(len(set(versions.values())), 1, versions)
+    def test_skill_version_matches_the_changelog(self):
+        front = re.match(r"---\n(.*?)\n---\n", (SKILL / "SKILL.md").read_text(encoding="utf-8"), re.S).group(1)
+        version = re.search(r'^  version: "(\d+\.\d+\.\d+)"$', front, re.M)
+        self.assertIsNotNone(version, "SKILL.md needs metadata.version")
         top = re.search(r"^## (\d+\.\d+\.\d+)", (ROOT / "CHANGELOG.md").read_text(encoding="utf-8"), re.M)
         self.assertIsNotNone(top, "CHANGELOG.md has no version heading")
-        self.assertEqual(top.group(1), next(iter(versions.values())), "CHANGELOG's newest version differs from the manifests")
+        self.assertEqual(top.group(1), version.group(1), "CHANGELOG's newest version differs from SKILL.md")
 
-    def test_marketplaces_point_at_real_plugins(self):
-        claude = json.loads((ROOT / ".claude-plugin" / "marketplace.json").read_text(encoding="utf-8"))
-        codex = json.loads((ROOT / ".agents" / "plugins" / "marketplace.json").read_text(encoding="utf-8"))
-        self.assertEqual(claude["name"], "trio")
-        self.assertEqual(codex["name"], "trio")
-        claude_source = ROOT / claude["plugins"][0]["source"]
-        codex_source = ROOT / codex["plugins"][0]["source"]["path"]
-        self.assertTrue((claude_source / ".claude-plugin" / "plugin.json").is_file())
-        self.assertTrue((codex_source / ".codex-plugin" / "plugin.json").is_file())
+    def test_repository_holds_exactly_one_skill_and_no_plugin_wrapper(self):
+        # Skill installers such as `npx skills` discover every SKILL.md, so a stray one would install twice.
+        skill_files = [p.relative_to(ROOT).as_posix() for p in ROOT.rglob("SKILL.md") if ".git" not in p.parts]
+        self.assertEqual(skill_files, ["skills/trio-workflow/SKILL.md"])
+        wrappers = [p.relative_to(ROOT).as_posix() for pattern in ("plugin.json", "marketplace.json")
+                    for p in ROOT.rglob(pattern) if ".git" not in p.parts]
+        self.assertEqual(wrappers, [], "trio ships as a plain skill; plugin manifests would bring back a second install path")
 
     def test_relative_markdown_links_resolve(self):
         broken = []
@@ -77,8 +72,9 @@ class RepoTests(unittest.TestCase):
             zh_keys = set(PLACEHOLDER.findall((zh / name).read_text(encoding="utf-8")))
             self.assertEqual(en_keys, zh_keys, f"placeholders differ in {name}")
 
-    def test_license_ships_with_the_plugin(self):
-        self.assertEqual((ROOT / "LICENSE").read_text(encoding="utf-8"), (PLUGIN / "LICENSE").read_text(encoding="utf-8"))
+    def test_license_ships_with_the_skill(self):
+        # Installers copy only the skill folder, so the MIT notice must live inside it.
+        self.assertEqual((ROOT / "LICENSE").read_text(encoding="utf-8"), (SKILL / "LICENSE").read_text(encoding="utf-8"))
 
 
 if __name__ == "__main__":

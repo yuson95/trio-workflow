@@ -46,7 +46,7 @@ Role: whichever agent the operator names as reviewer. The goal is a working hand
    - a quick check that selects tests by changed paths and prints summary lines only;
    - one configuration entry point for runtime paths;
    - a lock for heavy checks shared by every session on the machine. The skill's `scripts/heavy_lock.py` provides it; name the lock file path in `0_RULES`.
-6. **Install the trio-workflow plugin for every agent in the role table**; see the plugin's `README.md`. Install pstack too where the inner layer names it.
+6. **Install the trio-workflow skill for every agent in the role table**, for example `npx skills add yuson95/trio-workflow -g -a <agent> -y --copy`; other ways are in the repository README. Install pstack too where the inner layer names it.
 7. **Make the handoff path findable** by every agent. Add one line to the repo's `AGENTS.md` (read by Codex, Claude Code, Cursor and most other agents). If your tool has memory, also store the handoff path, the role table, the authorization phrases and the branch policy there, one fact per file.
 8. Go to [planning.md](planning.md) and draft the first plan.
 

@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.6.0 (2026-11-18)
+
+- trio now ships as a plain skill instead of a plugin. The skill moved from `plugins/trio-workflow/skills/trio-workflow/` to `skills/trio-workflow/`, the standard layout for skill repositories. The plugin manifests for Claude Code, Codex and Cursor and both marketplaces are gone; the skill's content is unchanged apart from one install line in `bootstrap.md`.
+- Install with `npx skills add yuson95/trio-workflow -g -a claude-code -a codex -y --copy`, or without Node.js with `tools/install_local.py`. Existing `npx skills` installs keep updating with `npx skills update -g`, which finds the skill at its new path.
+- If you installed the plugin, remove it with `claude plugin uninstall trio-workflow@trio` and `claude plugin marketplace remove trio` (in Codex, delete the `trio` entries from `~/.codex/config.toml`), then install the skill.
+- The version now lives in `SKILL.md` as `metadata.version`, next to `license: MIT`. The skill folder carries the MIT `LICENSE`, so every installed copy keeps the notice.
+- The README took over the old plugin README: install, the files inside the skill, the two layers, delivery modes and credits. The self-checks now also guard that the repository holds exactly one `SKILL.md` and no plugin manifests.
+
 ## 0.5.0 (2026-11-17)
 
 - Smaller always-loaded footprint: the skill description went from 734 to 429 characters, and `SKILL.md` from 115 to 96 lines, with every rule kept. Section numbers, file names and the `builder.md` sections that running plans refer to are unchanged.
