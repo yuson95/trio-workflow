@@ -279,10 +279,15 @@ class UsageGuardThreadTests(unittest.TestCase):
     def test_live_threads_show_context_calls_and_over_cap(self):
         self.write("lead.jsonl", _thread_rows({"id": "01a1eb6d-0000"}, [30_000, 90_000, 210_000], 60))
         self.write("worker.jsonl", _thread_rows({"id": "x", "agent_path": "/root/w1"}, [30_000, 60_000], 30))
+        self.write("near.jsonl", _thread_rows({"id": "y", "agent_path": "/root/w2"}, [130_000], 30))
         result = run("usage_guard.py", "--codex-home", str(self.home), "--left", "80", "--threads")
         self.assertEqual(result.returncode, 0, result.stdout)
         self.assertIn("THREAD OVER lead 01a1eb6d: context 210k tokens, 3 calls", result.stdout)
+        self.assertIn("THREAD NEAR /root/w2: context 130k tokens, 1 calls", result.stdout)
         self.assertIn("THREAD ok   /root/w1: context 60k tokens, 2 calls", result.stdout)
+        relaxed = run("usage_guard.py", "--codex-home", str(self.home), "--left", "80", "--threads", "--soft", "0.9")
+        self.assertIn("THREAD ok   /root/w2", relaxed.stdout)
+        self.assertEqual(run("usage_guard.py", "--left", "80", "--soft", "0").returncode, 2)
 
     def test_activity_comes_from_the_log_not_the_file_time(self):
         # Windows may leave an open log's modified time at its creation; the last row decides.

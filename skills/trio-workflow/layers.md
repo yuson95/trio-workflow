@@ -68,7 +68,7 @@ The plan tags every requirement with a **type**. The lead copies that type and i
 | Batch type | pstack playbook or skill | What changes under trio |
 | --- | --- | --- |
 | feature: new or changed behavior | Feature | Its parallel breakdown happens inside the batch's owned files; use arena for implementation shapes that are contested. |
-| bug fix: a reported defect | Bug fix | Reproduce on the real surface first, through the verification recipe. |
+| bug fix: a reported defect | Bug fix | Reproduce on the real surface first, through the verification recipe. Commit the repro (a failing test or script) early on the batch branch. |
 | refactoring: structure only, behavior unchanged | Refactoring | Capture behavior baselines before and after the change. |
 | perf: slowness with a baseline | Perf issue, plus benchmark-checklist | Measure the baseline on `main` first; heavy runs take the lock. |
 | hillclimb: push a metric toward a target | Hillclimb | One commit per accepted win, logged in the decision trail. |
@@ -110,7 +110,7 @@ The plan tags every requirement with a **type**. The lead copies that type and i
 3. **Smallest change, subtract first.** Remove dead weight before you add to it.
 4. **Bugs**:
    - reproduce on the real surface;
-   - write a failing test first when a cheap test path exists;
+   - write a failing test first when a cheap test path exists, or else a repro script, and commit it early on the batch branch so a successor starts from the same repro;
    - fix the root cause, not the symptom.
 5. **Test behavior**: assert what a user of the code can observe.
 6. **Drive the real surface** through the verification recipe for every "You see" line.

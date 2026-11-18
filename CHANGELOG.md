@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.7.2 (2026-11-18)
+
+Four handover rules that protect quality under the worker lifetime cap. A fresh worker loses its predecessor's working memory; these keep what matters.
+
+- **Soft cap**: at about 80% of the context or call limit, a worker starts no new unit. It finishes the current one to a green check and a commit, then ends. The cap itself is only the backstop. `usage_guard.py --threads` marks such workers `NEAR` (`--soft` sets the fraction).
+- **Read first**: the handoff, now updated at every unit end, names the files the next worker should read first, with line ranges.
+- **Successor check**: the fresh worker restates the goal, runs the quick check on the batch branch, and confirms its predecessor's claims on the real artifact before building on them.
+- **Committed repro**: a bug-fix batch commits its failing test or repro script early on the batch branch, so a successor starts from the same repro.
+
 ## 0.7.1 (2026-11-18)
 
 Fixes to the worker lifetime rule from 0.7.0.

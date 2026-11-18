@@ -110,9 +110,18 @@ Every model call resends the whole context of the agent that makes it. A call at
    - its context passes the cap in `0_RULES`: default 150k tokens, and 250k for bug-fix and investigation batches, whose value lies in the hypotheses they have built up;
    - about 150 of its own tool calls. Waiting adds no context: one long wait for the lock, a check or another agent counts as one call, and wall time does not count.
 
-   The lead reads each worker's context with `usage_guard.py --threads` where the tool records it (Codex). Elsewhere it goes by the call count in the worker's unit messages.
+   **Soft cap.** At about 80% of either limit, the worker starts no new unit. It finishes the current one to a green check and a commit, then ends. The cap itself is only the backstop: a worker that passes it mid-unit commits `wip:` on the batch branch and ends.
 
-   Before it ends, the worker commits its work as `wip:` on the batch branch and writes its handoff, including what it tried and ruled out. A bug-fix or investigation handoff also lists the open hypotheses. The rest of the batch goes to a fresh worker that reads only that handoff and does not repeat what it rules out. Size batches so one worker can finish within the cap. Never keep a worker alive to save its context.
+   The lead reads each worker's context with `usage_guard.py --threads` where the tool records it (Codex): `NEAR` marks the soft cap, `OVER` the cap. Elsewhere it goes by the call count in the worker's unit messages.
+
+   **Handover.** The worker updates its handoff at every unit end, so ending at any point loses at most one unit. The handoff names:
+   - what was tried and ruled out;
+   - the files the next worker should read first, with line ranges;
+   - for a bug fix or an investigation, the open hypotheses and the committed repro (a failing test or script, added early on the batch branch).
+
+   **Successor.** The rest of the batch goes to a fresh worker. It reads the handoff and the read-first files, restates the goal, runs the quick check on the batch branch, and confirms the predecessor's claims on the real artifact before building on them. It does not repeat what the handoff rules out.
+
+   Size batches so one worker can finish within the cap. Never keep a worker alive to save its context.
 9. **Message budget.** A worker sends the lead one message per unit, when the unit ends: the handoff path, one status (`DONE`, `BLOCKED` or `NEEDS_DECISION`) and its tool-call count so far. It sends nothing in between.
    - Progress goes into the handoff file.
    - Requests to another batch's owner go into the handoff's request list; the lead passes them on at integration.
@@ -121,7 +130,7 @@ Every model call resends the whole context of the agent that makes it. A call at
     - `FULL`: run up to the worker cap.
     - `ONE_WORKER`: one batch at a time; start no parallel batches.
     - `PAUSE`: follow Pause.
-    - Add `--threads` to list each live worker's context; retire workers marked `OVER` (rule 8).
+    - Add `--threads` to list each live worker's context. A worker marked `NEAR` finishes its current unit and ends; one marked `OVER` commits `wip:` and ends now (rule 8).
     - The script reads Codex's own usage record. For other tools, pass `--left <percent>` with the number the operator reads from the tool's usage page. If no number is available, write "usage unknown" in the progress file and keep to one worker.
 
 ## Templates
@@ -148,7 +157,8 @@ Restatement: <goal, owned files, untouched files; 3–5 sentences>
 - Evidence: <commands and summary lines; live scenarios and screenshot paths>
 - Requests for other owners' files:
 - Tried and ruled out: <approach → why it failed, one line each>
-- Open hypotheses (bug fix, investigation):
+- Read first: <file:line ranges the next worker needs, at most 8>
+- Open hypotheses and repro (bug fix, investigation):
 - Open issues:
 - Interface or contract changes the next batch must know:
 ```

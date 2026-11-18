@@ -20,8 +20,10 @@ its session logs ($CODEX_HOME/sessions, default ~/.codex/sessions). Other tools 
 no such record on disk: ask the operator for the number shown in the tool's usage page.
 
 --threads adds one line per Codex thread active in the last --active-minutes: its agent
-path, its current context (the input size of its last call), its call count, and OVER
-when the context passes --cap. The lead uses it to retire workers (builder.md rule 8).
+path, its current context (the input size of its last call) and its call count. NEAR
+marks a context past the soft cap (--soft times --cap, default 80%): the worker finishes
+its current unit and ends. OVER marks a context past --cap: it commits wip and ends now
+(builder.md rule 8).
 
 Exit codes: 0 FULL, 2 usage error, 3 ONE_WORKER, 4 PAUSE, 5 no reading found.
 """
@@ -172,6 +174,7 @@ def main(argv=None):
     parser.add_argument("--codex-home", default=os.environ.get("CODEX_HOME") or str(Path.home() / ".codex"))
     parser.add_argument("--threads", action="store_true", help="also list each live Codex thread and its context")
     parser.add_argument("--cap", type=int, default=150_000, help="context in tokens above which a thread is marked OVER")
+    parser.add_argument("--soft", type=float, default=0.8, help="fraction of --cap above which a thread is marked NEAR")
     parser.add_argument("--active-minutes", type=float, default=120.0, help="threads written to within this many minutes")
     args = parser.parse_args(argv)
     if not 0 <= args.pause_below <= args.reduce_below <= 100:
@@ -180,6 +183,9 @@ def main(argv=None):
     if args.left is not None and not 0 <= args.left <= 100:
         print("USAGE error: --left must be between 0 and 100")
         return USAGE
+    if not 0 < args.soft <= 1:
+        print("USAGE error: --soft must be above 0 and at most 1")
+        return USAGE
 
     code = _usage_line(args)
     if args.threads:
@@ -187,7 +193,7 @@ def main(argv=None):
         if not threads:
             print(f"THREADS none active in the last {args.active_minutes:.0f} min")
         for label, context, calls, idle in threads:
-            flag = "OVER" if context > args.cap else "ok"
+            flag = "OVER" if context > args.cap else "NEAR" if context > args.soft * args.cap else "ok"
             since = f"{idle:.0f} min ago" if idle is not None else "unknown"
             print(f"THREAD {flag:4} {label}: context {context / 1000:.0f}k tokens, {calls} calls, last call {since}")
     return code
