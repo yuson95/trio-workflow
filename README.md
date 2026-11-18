@@ -162,22 +162,6 @@ The targets are `claude`, `codex` and `cursor`. `check` reports copies that are 
 
 Put the absolute path of `skills/trio-workflow/SKILL.md` into the agent's system prompt or the repo's `AGENTS.md`, with this line: "Read and follow this skill; open the branch files it names when they apply."
 
-### Upgrading from the plugin (0.5.0 and earlier)
-
-Up to 0.5.0, trio also shipped as a plugin for Claude Code and Codex. If you installed it that way, remove the plugin first, then install the skill as above. In Claude Code:
-
-```bash
-claude plugin uninstall trio-workflow@trio
-```
-
-```bash
-claude plugin marketplace remove trio
-```
-
-In Codex, delete the `[marketplaces.trio]` and `[plugins."trio-workflow@trio"]` entries from `~/.codex/config.toml`.
-
-If you installed with `npx skills`, nothing changes: `npx skills update -g` finds the skill at its new path.
-
 ## What is inside
 
 | Path in `skills/trio-workflow/` | Content |

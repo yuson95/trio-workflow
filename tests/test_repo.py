@@ -36,7 +36,7 @@ class RepoTests(unittest.TestCase):
         self.assertEqual(skill_files, ["skills/trio-workflow/SKILL.md"])
         wrappers = [p.relative_to(ROOT).as_posix() for pattern in ("plugin.json", "marketplace.json")
                     for p in ROOT.rglob(pattern) if ".git" not in p.parts]
-        self.assertEqual(wrappers, [], "trio ships as a plain skill; plugin manifests would bring back a second install path")
+        self.assertEqual(wrappers, [], "trio ships as a plain skill with one install path")
 
     def test_relative_markdown_links_resolve(self):
         broken = []
