@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.7.4 (2026-11-19)
+
+From the first night of a Claude Code builder on one plan: 36 workers in 14 hours. About half of the work came from verification. Most of it fixed real defects, but two things were pure waste: proof checks that ran before the code stopped changing and had to run again, and a hung screenshot run that held the heavy-check lock for two hours.
+
+- **Two passes** (builder step 9): a discovery pass runs early (screenshot matrix, visual review, first-save replay, one regression run) to find defects while batches are open. The builder then freezes the candidate and runs the acceptance pass once on it: the stop's checks, the screenshot matrix and contact sheet, and the walkthrough instance. Each result names the SHA it ran on. A fix after the freeze reruns the acceptance checks that cover its files; the full check runs last, on the final SHA. The reviewer treats a result from an older SHA as `NOT_RUN` unless the material says why the later fixes cannot affect it.
+- **Idle stop** (`heavy_lock.py run`): after `--idle-minutes` (default 30) without output, and without growth of any `--watch` log, the command's whole process tree is stopped, the lock released, and the run exits 124. Python children run unbuffered so their progress counts. `--idle-minutes 0` turns it off.
+
 ## 0.7.3 (2026-11-18)
 
 Calibrated on a Claude Code builder's first evening: 7 workers, 733 calls. Handover ramp-up cost 7% of their tokens, far less than letting contexts keep growing, but one theme-sized batch ("fix every failure") ran through four workers.

@@ -36,7 +36,9 @@ Role: Builder. The lead coordinates, integrates and reports, and never writes th
    - Check usage before every fan-out and at every integration (token rule 10). Below the reduce threshold, run one batch at a time; below the pause threshold, pause.
    - Each worker gets its own worktree on a short path outside the repo, and its own local branch.
    - One writer per file. A worker that needs another batch's file writes the request into its handoff, and the owner makes the change.
-   - Heavy checks (full check, solver tests, browser suites, timing runs, load reproduction) run one at a time, across every session on the machine, under the lock file named in `0_RULES`: `python <skill dir>/scripts/heavy_lock.py --lock <path> run --owner <session> --wait 7200 -- <command>`.
+   - Heavy checks (full check, solver tests, browser suites, screenshot runs, timing runs, load reproduction) run one at a time, across every session on the machine, under the lock file named in `0_RULES`: `python <skill dir>/scripts/heavy_lock.py --lock <path> run --owner <session> --wait 7200 -- <command>`.
+     - A hung run must not hold the lock. `run` stops the command's whole process tree and releases the lock after 30 minutes without output, and exits 124. A command that writes to its own log file gets `--watch <log>`, so the log's growth counts as output. For a command that is legitimately quiet for longer, raise `--idle-minutes`; never turn it off for browser or screenshot runs.
+     - An idle stop is a failed run: record it as `NOT_RUN` with the reason, find what hung, and rerun.
 6. **Integrate each batch**:
    - **Ownership check**: compare the changed files with the batch's owned files and the append-only list.
      - A change outside them is taken out of the batch and passed to the owner as a request.
@@ -53,14 +55,22 @@ Role: Builder. The lead coordinates, integrates and reports, and never writes th
    - A question that changes business meaning: proceed on the plan's default or the most conservative choice, log it, and report it at the next stop.
    - Stop early only for a blocker that halts all remaining work.
    - Requests the operator gives you directly: do them, and mark them "operator's direct request" with the date in the stop material.
-9. **Before any walkthrough and before the final stop**, follow [ui-acceptance.md](ui-acceptance.md):
-   - capture the screenshot matrix for every changed page and state, on `main` and on the candidate, and build the contact sheet with `scripts/screenshot_sheet.py` (§2);
-   - run the visual review and fix its findings, then recapture (§3);
-   - start an isolated instance from the candidate with one prepared synthetic project per state (own port, own projects directory). Give the operator the address, the page list in walking order and the contact sheet (§4);
-   - fix what the walkthrough finds before the stop.
+9. **Verify in two passes.** A check either finds defects or proves the candidate the reviewer will see. A proof run before the code stops changing has to run again, so the two kinds run at different times.
+   - **Discovery pass**, early: as soon as the batches that change a page or a form are integrated, and before any walkthrough in the middle of the plan:
+     - capture the screenshot matrix and run the visual review ([ui-acceptance.md](ui-acceptance.md) §2–3);
+     - replay the first save of each new or changed form;
+     - run the regression gate once, so breaks surface while batches are still open.
+
+     Fix the findings in normal batches. These results guide the work; they are not stop evidence.
+   - **Freeze**: once every batch for the stop is integrated, the discovery fixes and the handoff doc included, record the candidate SHA in the progress file and add a `decision` row "freeze <sha>". After the freeze, only fixes for findings of the acceptance pass or the walkthrough go in.
+   - **Acceptance pass**, once per stop, on the frozen candidate:
+     - the checks the plan lists for the stop; at the final stop, the regression gate and every independent recomputation, first-save replay and release build the plan or the stop-1 `RESULT` asks for;
+     - for a stop that changes UI, the screenshot matrix and the contact sheet (ui-acceptance §2), the visual review of the new captures (§3), and the isolated instance for the walkthrough, with one prepared synthetic project per state (own port, own projects directory). Give the operator the address, the page list in walking order and the contact sheet (§4).
+
+     Each result names the SHA it ran on.
+   - **A fix after the freeze** makes a new candidate SHA. Rerun every acceptance check that covers a file the fix changed. A result from the earlier SHA stays valid only where the stop material says why the fix cannot affect it. Fix what the walkthrough finds before the stop.
 10. **At a stop**:
-    - run the full check in a quiet environment, under the lock;
-    - at the final stop, also run the regression gate and commit the handoff doc to the wip branch;
+    - run the full check last, on the final candidate SHA, in a quiet environment, under the lock;
     - optionally, ask a different model family to scan the decision trail and list what the operator should look at;
     - write the stop material from the template, then reply with one line, "Reached stop N, material at <path>", and stop.
 11. **On "Review result at …RESULT.md"**: fix by ID on the same branch. Write a fix note per ID (what changed, how it was verified), then continue or stop for the re-review, as the RESULT says.
@@ -189,9 +199,10 @@ Append with `python <skill dir>/scripts/log_decision.py <file> <phase> <decision
 ```markdown
 # <plan> stop N material
 - Integration wip/<key> @ <sha>; base main @ <sha>
+- Frozen candidate @ <sha>; fixes after the freeze: <sha, files, which checks reran> / none
 ## 1. Goal (restated)
 ## 2. Requirement IDs and status (implemented and verified / implemented, not verified / not done or limited)
-## 3. Checks, each PASS / FAIL / NOT_RUN, with summary lines and log paths
+## 3. Checks, each PASS / FAIL / NOT_RUN, with the SHA it ran on, summary lines and log paths
 ## 4. Live evidence (scenario → screenshot or output → pass/fail)
 ## 5. Main changed files
 ## 6. Operator's direct requests (dates)

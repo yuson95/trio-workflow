@@ -32,6 +32,7 @@ Role: Reviewer. Plans and change requests are the builder's only source of requi
    - Storage-format changes and migrations need a `DESIGN_*.md` that the reviewer answers with "go ahead" before code is written.
    - Middle stops: after a data migration or a large phase.
    - Final stop: full check, regression gate, handoff doc, and the operator's walkthrough beforehand.
+   - Name which checks prove the stop (acceptance) and which only find defects early (discovery). Acceptance checks run once on the frozen candidate ([builder.md](builder.md) step 9), so a plan that asks for independent recomputation, first-save replay or a release build lists them under the stop, not under a batch.
 8. **Design for parallel work.** Parallelism comes from boundaries drawn in advance, not from resolving conflicts afterwards.
    - When the operator asks for "faster" or "more parallel" without saying where, ask whether that means batches inside one plan, or two plans coding at once.
    - Two plans may code at once only when their ownership tables do not overlap. If they overlap, name the files that would conflict and propose the pipeline below instead.

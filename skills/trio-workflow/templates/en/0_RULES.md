@@ -8,7 +8,8 @@ Generic process, parallel and token rules live in the trio-workflow skill (`buil
 2. **Baseline and branches**: a new worktree on a short path outside the repo and a local branch from current `main`; integration branch `wip/<plan>`; remote policy: <main plus release branches>.
    - Delivery: {{delivery}}. In `pr` mode: forge, CI tiers per PR, standing authorization for the builder and the reviewer.
 3. **Checks**: quick command <…>; full command <…> and its duration; report summary lines only; a missing environment is `NOT_RUN`.
-   - Heavy checks run one at a time under the lock `{{lock}}` (`scripts/heavy_lock.py`).
+   - Heavy checks run one at a time under the lock `{{lock}}` (`scripts/heavy_lock.py`). A run with no output for 30 minutes is stopped and the lock released (`--idle-minutes`; `--watch <log>` for commands that write their own log).
+   - Final stop: discovery checks run early; acceptance checks (regression gate, recomputation, first-save replay, release build, screenshot matrix, full check) run once on the frozen candidate, each with the SHA it ran on.
 4. **Verification recipe**: path to Launch / Doctor / Drive / Evidence / Cleanup and the feature map: <…>.
 5. **Data and isolation**: data root <…>; isolated instance command <own port, own projects folder>; the operator's service: {{service}} (never touch it).
 6. **Parallel**: worker cap 3; hotspot files: <…>.

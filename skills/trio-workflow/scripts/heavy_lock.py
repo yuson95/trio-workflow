@@ -6,26 +6,36 @@ flaky results when they overlap. Every session on the machine takes this lock
 before a heavy run. The lock is a JSON file created atomically; a stale lock is
 reported, never removed automatically, because its holder may still be running.
 
+`run` also guards against a hung command holding the lock: after --idle-minutes
+(default 30) without output on stdout or stderr, and without growth of any
+--watch file, it stops the command's whole process tree, releases the lock and
+exits 124. Python children run unbuffered so their progress counts as output.
+--idle-minutes 0 turns the guard off.
+
 Usage:
   heavy_lock.py --lock PATH status
   heavy_lock.py --lock PATH acquire --owner NAME --cmd TEXT [--wait SECONDS]
   heavy_lock.py --lock PATH release --owner NAME
-  heavy_lock.py --lock PATH run --owner NAME [--wait SECONDS] -- COMMAND [ARGS...]
+  heavy_lock.py --lock PATH run --owner NAME [--wait SECONDS] [--idle-minutes N]
+                [--watch FILE ...] -- COMMAND [ARGS...]
 
 The lock path can also come from the TRIO_HEAVY_LOCK environment variable.
-Exit codes: 0 ok, 2 usage error, 3 busy (wait expired), 4 held by another owner.
+Exit codes: 0 ok, 2 usage error, 3 busy (wait expired), 4 held by another owner,
+124 run stopped after the idle limit; otherwise `run` returns the command's code.
 """
 
 import argparse
 import json
 import os
+import signal
 import socket
 import subprocess
 import sys
+import threading
 import time
 from datetime import datetime, timezone
 
-BUSY, NOT_OWNER, USAGE = 3, 4, 2
+BUSY, NOT_OWNER, USAGE, IDLE_STOPPED = 3, 4, 2, 124
 
 
 def _now():
@@ -117,15 +127,91 @@ def status(path, stale_hours):
     return 0
 
 
-def run(path, owner, wait, poll, stale_hours, command):
+def _forward(source, target, activity):
+    """Copy a child's output to our own stream and stamp the time of each chunk."""
+    out = getattr(target, "buffer", target)
+    while True:
+        chunk = os.read(source.fileno(), 4096)
+        if not chunk:
+            return
+        activity[0] = time.monotonic()
+        out.write(chunk)
+        out.flush()
+
+
+def _watch_sizes(paths):
+    sizes = []
+    for path in paths:
+        try:
+            stat = os.stat(path)
+            sizes.append((stat.st_size, stat.st_mtime_ns))
+        except OSError:
+            sizes.append(None)
+    return sizes
+
+
+def _stop_tree(process):
+    """Stop the command and everything it started; a hung browser is usually a grandchild."""
+    if os.name == "nt":
+        subprocess.run(["taskkill", "/T", "/F", "/PID", str(process.pid)], capture_output=True)
+    else:
+        try:
+            os.killpg(process.pid, signal.SIGKILL)
+        except (ProcessLookupError, PermissionError):
+            pass
+    try:
+        process.wait(timeout=30)
+    except subprocess.TimeoutExpired:
+        process.kill()
+
+
+def _run_watched(command, idle_minutes, watch):
+    env = dict(os.environ)
+    env.setdefault("PYTHONUNBUFFERED", "1")
+    options = {"start_new_session": True} if os.name != "nt" else {}
+    process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=env, **options)
+    activity = [time.monotonic()]
+    readers = [
+        threading.Thread(target=_forward, args=(process.stdout, sys.stdout, activity), daemon=True),
+        threading.Thread(target=_forward, args=(process.stderr, sys.stderr, activity), daemon=True),
+    ]
+    for reader in readers:
+        reader.start()
+    limit = idle_minutes * 60
+    sizes = _watch_sizes(watch)
+    while process.poll() is None:
+        time.sleep(min(1.0, max(limit / 10, 0.05)))
+        current = _watch_sizes(watch)
+        if current != sizes:
+            sizes = current
+            activity[0] = time.monotonic()
+        if time.monotonic() - activity[0] > limit:
+            _stop_tree(process)
+            print(
+                f"HEAVY_LOCK stopped the command after {idle_minutes:g} min without output; "
+                "process tree killed, lock released. Record the run as NOT_RUN and find what hung.",
+                flush=True,
+            )
+            return IDLE_STOPPED
+    for reader in readers:
+        reader.join(timeout=5)
+    return process.returncode
+
+
+def run(path, owner, wait, poll, stale_hours, command, idle_minutes=30.0, watch=()):
     if not command:
         print("HEAVY_LOCK run needs a command after --", file=sys.stderr)
+        return USAGE
+    if idle_minutes < 0:
+        print("HEAVY_LOCK --idle-minutes must be 0 (off) or more", file=sys.stderr)
         return USAGE
     code = acquire(path, owner, " ".join(command), wait, poll, stale_hours)
     if code != 0:
         return code
     try:
-        return subprocess.call(command)
+        if idle_minutes == 0:
+            return subprocess.call(command)
+        return _run_watched(command, idle_minutes, list(watch))
     finally:
         release(path, owner)
 
@@ -154,6 +240,8 @@ def main(argv=None):
     wrap = sub.add_parser("run")
     wrap.add_argument("--owner", required=True)
     wrap.add_argument("--wait", type=float, default=0.0)
+    wrap.add_argument("--idle-minutes", type=float, default=30.0, help="stop after this long without output; 0 turns it off")
+    wrap.add_argument("--watch", action="append", default=[], help="a log file whose growth counts as output (repeatable)")
     wrap.add_argument("command", nargs=argparse.REMAINDER)
     args = parser.parse_args(argv)
     if not args.lock:
@@ -166,7 +254,7 @@ def main(argv=None):
     if args.action == "release":
         return release(args.lock, args.owner)
     command = args.command[1:] if args.command[:1] == ["--"] else args.command
-    return run(args.lock, args.owner, args.wait, args.poll, args.stale_hours, command)
+    return run(args.lock, args.owner, args.wait, args.poll, args.stale_hours, command, args.idle_minutes, args.watch)
 
 
 if __name__ == "__main__":

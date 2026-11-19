@@ -175,6 +175,77 @@ class HeavyLockTests(unittest.TestCase):
         self.assertEqual(result.returncode, 2)
 
 
+def _alive(pid):
+    if os.name == "nt":
+        listing = subprocess.run(["tasklist", "/FI", f"PID eq {pid}", "/NH"], capture_output=True, text=True)
+        return str(pid) in listing.stdout
+    try:
+        os.kill(pid, 0)
+    except ProcessLookupError:
+        return False
+    return True
+
+
+class HeavyLockIdleTests(unittest.TestCase):
+    """A hung command must not hold the lock: `run` stops it after the idle limit."""
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.dir = Path(self.tmp.name)
+        self.lock = str(self.dir / "heavy-check.lock")
+
+    def tearDown(self):
+        self.tmp.cleanup()
+
+    def run_locked(self, *options_and_command):
+        return run("heavy_lock.py", "--lock", self.lock, "run", "--owner", "builder-a", *options_and_command)
+
+    def test_quiet_command_is_stopped_and_the_lock_released(self):
+        started = time.monotonic()
+        result = self.run_locked("--idle-minutes", "0.03", "--", sys.executable, "-c", "import time; time.sleep(60)")
+        self.assertEqual(result.returncode, 124, result.stdout + result.stderr)
+        self.assertIn("HEAVY_LOCK stopped the command after 0.03 min without output", result.stdout)
+        self.assertIn("HEAVY_LOCK released owner=builder-a", result.stdout)
+        self.assertFalse(Path(self.lock).exists())
+        self.assertLess(time.monotonic() - started, 30)
+
+    def test_steady_output_keeps_the_run_alive_and_is_forwarded(self):
+        script = "import sys, time\nfor i in range(8):\n    print('tick', i)\n    print('note', i, file=sys.stderr)\n    time.sleep(0.5)\n"
+        result = self.run_locked("--idle-minutes", "0.05", "--", sys.executable, "-c", script)
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertIn("tick 7", result.stdout)
+        self.assertIn("note 7", result.stderr)
+        self.assertNotIn("HEAVY_LOCK stopped", result.stdout)
+
+    def test_a_growing_watched_log_counts_as_output(self):
+        log = self.dir / "run.log"
+        script = f"import time\nfor i in range(8):\n    open({str(log)!r}, 'a').write('line\\n')\n    time.sleep(0.5)\n"
+        result = self.run_locked("--idle-minutes", "0.05", "--watch", str(log), "--", sys.executable, "-c", script)
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertNotIn("HEAVY_LOCK stopped", result.stdout)
+
+    def test_the_whole_process_tree_is_stopped(self):
+        pid_file = self.dir / "grandchild.pid"
+        script = (
+            "import subprocess, sys, time\n"
+            "child = subprocess.Popen([sys.executable, '-c', 'import time; time.sleep(120)'])\n"
+            f"open({str(pid_file)!r}, 'w').write(str(child.pid))\n"
+            "time.sleep(120)\n"
+        )
+        result = self.run_locked("--idle-minutes", "0.05", "--", sys.executable, "-c", script)
+        self.assertEqual(result.returncode, 124, result.stdout + result.stderr)
+        grandchild = int(pid_file.read_text())
+        deadline = time.monotonic() + 10
+        while _alive(grandchild) and time.monotonic() < deadline:
+            time.sleep(0.2)
+        self.assertFalse(_alive(grandchild), f"grandchild {grandchild} still running")
+
+    def test_negative_idle_limit_is_a_usage_error(self):
+        result = self.run_locked("--idle-minutes", "-1", "--", sys.executable, "-c", "pass")
+        self.assertEqual(result.returncode, 2)
+        self.assertFalse(Path(self.lock).exists())
+
+
 def _codex_row(stamp, used_percent, resets_at, secondary=None):
     limits = {"primary": {"used_percent": used_percent, "window_minutes": 10080, "resets_at": resets_at}, "secondary": secondary}
     return json.dumps({"timestamp": stamp, "type": "event_msg", "payload": {"type": "token_count", "rate_limits": limits}})

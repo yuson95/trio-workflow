@@ -50,6 +50,7 @@ Run only the quick check when the code is identical to `main`. The other steps s
 2. **Check the material**:
    - every requirement ID has a status;
    - every check reads PASS, FAIL or NOT_RUN;
+   - every acceptance result names the SHA it ran on. A result from an SHA older than the candidate needs the material's reason why the later fixes cannot affect it; otherwise treat it as `NOT_RUN` ([builder.md](builder.md) step 9);
    - the operator's direct requests carry dates;
    - the decision trail is sound: rows match real actions, evidence pointers resolve, forks and pivots are logged.
 

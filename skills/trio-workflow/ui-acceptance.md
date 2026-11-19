@@ -23,6 +23,7 @@ It applies to every requirement whose review gate is not "none", that is, every 
 
 ## 2. Screenshot matrix (builder, before the walkthrough and at every stop that changes UI)
 
+- **Two captures** ([builder.md](builder.md) step 9). The discovery capture, early, finds defects while batches are still open. The acceptance capture, on the frozen candidate, is the stop's evidence. The acceptance capture retakes the candidate side only; keep the `main` side unless `main` moved.
 - **Pages**: every page the stop changed. Take them from the diff and from the plan's "You see" lines.
 - **States**, by default (the plan may add more):
 
