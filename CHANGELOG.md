@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.8.0 (2026-11-20)
+
+Spend review effort where a run can settle it. pstack warns that adversarial review of a plan with no code behind it invents risks that never happen, and keeps only findings a run proves. trio's adversarial pass already counted only reproduced findings, but its plan and design reviews had no such limit, and plans had no place for the properties a change must keep. At one plan's final stop, the two defects that changed reported numbers (a site-wide baseline that depended on which measures a portfolio held, and a saving that could be deducted twice) passed every unit test and surfaced only in the reviewer's own runs. On the same plan, a provenance rule written at planning time as hard blocks everywhere had to be relaxed to visible labels once the operator ran into it.
+
+- **Before code exists** (review.md, Writing findings): at plan and contract stops and in design reviews, a finding is a contradiction with the current code (with its pointer), the output of a probe or prototype, or a decision for the operator. An imagined risk gets a probe or stays out.
+- **Blocking checks** (planning.md A step 5): a requirement that refuses a save or stops a calculation names the harm it prevents and why a visible label would not prevent it.
+- **Invariants** (planning.md A step 5 and the plan template): a requirement that computes numbers or changes stored state lists the properties that must hold for every input, each with a test over varied inputs; other requirements write `none`. `check_plan.py` requires the line (`Invariants` / `不变量`). Kickoffs carry the invariants to workers, who see each test go red on a broken version; at stops the reviewer breaks the guarded code once and confirms the test fails.
+
 ## 0.7.4 (2026-11-19)
 
 From the first night of a Claude Code builder on one plan: 36 workers in 14 hours. About half of the work came from verification. Most of it fixed real defects, but two things were pure waste: proof checks that ran before the code stopped changing and had to run again, and a hung screenshot run that held the heavy-check lock for two hours.

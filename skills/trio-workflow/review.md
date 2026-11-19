@@ -28,13 +28,14 @@ Use the material path the operator gives. The `RESULT` file sits next to it, wit
 **Plan and contract stops** (usually stop 1, before business code exists) replace step 3 with these checks:
 
 - every requirement ID lands in a batch and has a checkable "You see" line;
+- every requirement that computes numbers or changes stored state names its invariants with their tests, and every new blocking check names the harm it prevents ([planning.md](planning.md) A step 5);
 - the contracts (data shapes, interfaces, storage migration, page flow) match the current code; spot-check the key pointers;
 - the ownership table is complete and each hotspot has one owner;
 - the probe and prototype conclusions hold;
 - every review-gated requirement has a prototype, and the operator has confirmed it or picked a variant;
 - the builder's opening checks are sound.
 
-Run only the quick check when the code is identical to `main`. The other steps stay the same.
+Run only the quick check when the code is identical to `main`. The other steps stay the same; findings follow "Before code exists" under [Writing findings](#writing-findings).
 
 **Stops after a data migration** add two checks:
 
@@ -59,6 +60,7 @@ Run only the quick check when the code is identical to `main`. The other steps s
    - **Full check**: rerun it in a separate review worktree (`git worktree add --detach <short path outside the repo> <candidate sha>`), in a quiet environment: no browser runs and no large copies meanwhile, and take the heavy-check lock named in `0_RULES` (`scripts/heavy_lock.py ... run --owner <review session> -- <full check command>`). Keep the worktree until the re-review is done and remove it at cleanup.
    - **Live**: start an isolated instance from the candidate with a synthetic copy, following the verification recipe named in `0_RULES`, and drive the changed pages. Never use the operator's service.
    - **Numbers**: cross-check every new number through an independent path (explain the number).
+   - **Invariants**: for each invariant the plan names, break the code it guards with one small edit in the review worktree, confirm its test goes red, then revert the edit. A test that stays green is a finding.
    - **Expand**: chart axis order, empty projects, pages opened directly rather than from history, load time with many runs.
    - **Look at the page** for every UI change: open the builder's contact sheet ([ui-acceptance.md](ui-acceptance.md) §2). Run the visual review (§3) yourself when the builder's pass was same-family or missing. Missing states without a written reason count as findings.
 4. **Adversarial pass.** Try to break the change against its stated intent. If pstack is installed in your tool, its interrogate skill runs this pass (see [layers.md](layers.md)); the rules below still decide what counts.
@@ -84,7 +86,7 @@ If the operator told the builder "passed" before the review finished, say once, 
 
 ## C. Design review
 
-Read only the `DESIGN_*.md` and the code it touches. Answer "go ahead" or list the changes. Write the items to check at the final stop into `DESIGN_*_REVIEW.md`.
+Read only the `DESIGN_*.md` and the code it touches. Answer "go ahead" or list the changes; each change follows "Before code exists" under [Writing findings](#writing-findings). Write the items to check at the final stop into `DESIGN_*_REVIEW.md`.
 
 ## D. Small-change review
 
@@ -107,6 +109,7 @@ Read only the diff. No live run and no full check. Check three things:
 
 ## Writing findings
 
+- **Before code exists** (plan and contract stops, design reviews): a finding is one of three things: a contradiction with the current code, with its pointer; the output of a probe or prototype you ran; a decision for the operator, with a default. Settle an imagined risk with a probe, or leave it out. Risks imagined about unbuilt code are where review drifts into nitpicking and speculative scope.
 - **Each finding**: ID (`<plan prefix>-NN`) and priority (high, medium, low); location; trigger and evidence (the run that shows it); expected; actual; impact; smallest fix direction; acceptance check. Give a direction, not a patch.
 - **Three groups**:
   - confirmed defects;

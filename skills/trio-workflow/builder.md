@@ -21,7 +21,7 @@ Role: Builder. The lead coordinates, integrates and reports, and never writes th
 2. **Restate**: open the progress file with the operator's goal in your own words. Every worker kickoff repeats it.
 3. **Kick off each batch** with a fresh worker. The kickoff contains:
    - the goal, restated;
-   - the requirement IDs and plan sections for this batch;
+   - the requirement IDs, their invariants, and the plan sections for this batch;
    - the batch type and the inner playbook, from [layers.md](layers.md);
    - the files the worker may write (its owned files), and the files it must leave alone;
    - forbidden actions: push, merge into `main`, touching the operator's service or client data;

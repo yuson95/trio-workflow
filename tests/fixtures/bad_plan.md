@@ -15,6 +15,7 @@
 ### R2 Add a stale-result banner
 - Type: feature
 - You see: a yellow banner says which input changed
+- Invariants: none
 - Verify, unit: `tests/test_banner.py`
 - Verify, live: open a stale run; screenshot
 - Review gate: operator walkthrough

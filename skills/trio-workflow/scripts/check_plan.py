@@ -3,7 +3,8 @@
 
 Checks:
   1. Every requirement block (### <ID> ... under the requirements section) has
-     a type, a "You see" line, unit and live verification, and a review gate;
+     a type, a "You see" line, invariants (or "none"), unit and live
+     verification, and a review gate;
      a review-gated requirement (gate other than "none") also needs a prototype.
   2. Every decision row has a default.
   3. In the batches table, no file is owned by two batches unless it is listed
@@ -23,6 +24,7 @@ import sys
 LABELS = {
     "type": ("Type", "类型"),
     "you_see": ("You see", "你会看到"),
+    "invariants": ("Invariants", "不变量"),
     "unit": ("Verify, unit", "单元验证"),
     "live": ("Verify, live", "实际操作验证"),
     "gate": ("Review gate", "走查"),

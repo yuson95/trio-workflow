@@ -41,6 +41,8 @@ class CheckPlanTests(unittest.TestCase):
         out = result.stdout
         self.assertIn("lacks 'You see'", out)
         self.assertIn("lacks 'Verify, live'", out)
+        self.assertIn("'R1 Show the yearly total' lacks 'Invariants'", out)
+        self.assertNotIn("'R2 Add a stale-result banner' lacks 'Invariants'", out)
         self.assertIn("decision 'D-1' has no default", out)
         self.assertIn("decision 'D-2' has no default", out)
         self.assertIn("`shared/table.js` is owned by several batches", out)

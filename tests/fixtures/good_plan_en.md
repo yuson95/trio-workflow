@@ -14,6 +14,7 @@ UI conventions bind R1.
 - Current state (pointer): `web/summary.js` renderTotals
 - Change: add a yearly total row
 - You see: the summary table ends with "Total 1,234 MWh"
+- Invariants: the yearly total equals the sum of the monthly rows for every project; `tests/test_summary.py` test_total_matches_months over generated projects
 - Verify, unit: `tests/test_summary.py` gains test_yearly_total
 - Verify, live: open the summary page of the synthetic project; screenshot; pass when the total row shows
 - Review gate: operator walkthrough
@@ -24,6 +25,7 @@ UI conventions bind R1.
 - Current state (pointer): `src/format.py` round_half
 - Change: round half away from zero
 - You see: -0.5 shows as -1
+- Invariants: rounding is symmetric, round(-x) == -round(x); `tests/test_format.py` test_round_symmetry over 1,000 generated values
 - Verify, unit: `tests/test_format.py` gains test_negative_half
 - Verify, live: the comparison page shows -1 for the sample delta
 - Review gate: none

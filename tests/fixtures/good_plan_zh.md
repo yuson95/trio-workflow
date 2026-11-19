@@ -10,6 +10,7 @@
 - 类型：功能
 - 现状（出处）：`web/summary.js` renderTotals
 - 你会看到：摘要表最后一行是“合计 1,234 MWh”
+- 不变量：任何项目的全年合计都等于各月之和；`tests/test_summary.py` test_total_matches_months，用生成的项目检查
 - 单元验证：`tests/test_summary.py` 新增 test_yearly_total
 - 实际操作验证：打开合成项目的摘要页并截图，合计行出现即通过
 - 走查：需要
