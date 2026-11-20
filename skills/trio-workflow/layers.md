@@ -47,12 +47,12 @@ A worker running in a tool where pstack is not installed uses the built-in rules
 - owned files, untouched files, append-only files;
 - forbidden actions: push, PR, merge, touching the operator's service or client data;
 - the evidence to produce: commands with their expected output, live scenarios from the verification recipe, a perf rule if one applies;
-- the previous handoff, and the lock file path for heavy checks;
+- the previous handoff, and the lock file path for heavy checks (a busy lock sends heavy runs back to the lead as a steps file, [builder.md](builder.md) step 5);
 - the lifetime cap and the message budget from [builder.md](builder.md) token rules 8 and 9.
 
 **Out: what the worker returns**:
 
-- one message to the lead per unit, when the unit ends: the handoff path, `DONE`, `BLOCKED` or `NEEDS_DECISION`, and the tool-call count so far; nothing in between;
+- one message to the lead per unit, when the unit ends: the handoff path, `DONE`, `BLOCKED`, `NEEDS_DECISION` or `NEEDS_HEAVY_RUN`, and the tool-call count so far; nothing in between;
 
 - commits on the batch branch only, ordered so they read as an argument (failing test then fix, subtraction then reshape, baseline then treatment);
 - a handoff of at most 30 lines in the template of [builder.md](builder.md);
@@ -112,7 +112,7 @@ The plan tags every requirement with a **type**. The lead copies that type and i
    - reproduce on the real surface;
    - write a failing test first when a cheap test path exists, or else a repro script, and commit it early on the batch branch so a successor starts from the same repro;
    - fix the root cause, not the symptom.
-5. **Test behavior**: assert what a user of the code can observe. Write each invariant from the kickoff as a test over varied inputs, and see it go red on a deliberately broken version before relying on it.
+5. **Test behavior**: assert what a user of the code can observe. Write each invariant from the kickoff as a test over varied inputs, and see it go red on a deliberately broken version before relying on it. Record the break in the handoff: the edited line, the test that went red, and that the edit was reverted.
 6. **Drive the real surface** through the verification recipe for every "You see" line.
 7. **Performance**: measure the baseline on `main` first and explain the number. Heavy runs take the lock.
 8. **Commit** in small units, each ending in a check, in an order that reads as an argument.

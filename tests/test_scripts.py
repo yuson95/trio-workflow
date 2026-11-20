@@ -248,6 +248,143 @@ class HeavyLockIdleTests(unittest.TestCase):
         self.assertFalse(Path(self.lock).exists())
 
 
+class HeavyLockOwnRunTests(unittest.TestCase):
+    """Runs never share the lock, not even with their own owner, and release only their own acquisition."""
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.lock = str(Path(self.tmp.name) / "heavy-check.lock")
+
+    def tearDown(self):
+        self.tmp.cleanup()
+
+    def test_second_run_of_the_same_owner_waits_and_the_first_keeps_the_lock(self):
+        first = subprocess.Popen(
+            [sys.executable, str(SCRIPTS / "heavy_lock.py"), "--lock", self.lock, "run", "--owner", "builder-a", "--",
+             sys.executable, "-c", "import time; time.sleep(4)"],
+            stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+        )
+        try:
+            deadline = time.monotonic() + 10
+            while not Path(self.lock).exists() and time.monotonic() < deadline:
+                time.sleep(0.1)
+            second = run("heavy_lock.py", "--lock", self.lock, "run", "--owner", "builder-a", "--", sys.executable, "-c", "pass")
+            self.assertEqual(second.returncode, 3, second.stdout)
+            self.assertIn("same owner", second.stdout)
+            self.assertIn("HEAVY_LOCK held owner=builder-a", run("heavy_lock.py", "--lock", self.lock, "status").stdout)
+        finally:
+            first.communicate(timeout=30)
+        self.assertEqual(first.returncode, 0)
+        self.assertFalse(Path(self.lock).exists())
+
+    def test_run_leaves_a_manual_hold_of_its_owner_in_place(self):
+        run("heavy_lock.py", "--lock", self.lock, "acquire", "--owner", "builder-a", "--cmd", "manual")
+        result = run("heavy_lock.py", "--lock", self.lock, "run", "--owner", "builder-a", "--", sys.executable, "-c", "pass")
+        self.assertEqual(result.returncode, 3, result.stdout)
+        self.assertEqual(json.loads(Path(self.lock).read_text(encoding="utf-8"))["cmd"], "manual")
+
+    def test_run_never_releases_a_later_acquisition_of_the_same_owner(self):
+        script = (
+            "import json, os\n"
+            f"os.remove({self.lock!r})\n"
+            f"open({self.lock!r}, 'w').write(json.dumps({{'owner': 'builder-a', 'cmd': 'later', 'token': 'other'}}))\n"
+        )
+        result = run("heavy_lock.py", "--lock", self.lock, "run", "--owner", "builder-a", "--", sys.executable, "-c", script)
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertIn("not released", result.stdout)
+        self.assertEqual(json.loads(Path(self.lock).read_text(encoding="utf-8"))["cmd"], "later")
+
+
+class HeavyLockStepsTests(unittest.TestCase):
+    """`run-steps`: the lead runs a worker's heavy steps in order under one hold, each into its own log."""
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.dir = Path(self.tmp.name)
+        self.lock = str(self.dir / "heavy-check.lock")
+        self.steps = self.dir / "w07" / "heavy-steps.json"
+        self.steps.parent.mkdir()
+
+    def tearDown(self):
+        self.tmp.cleanup()
+
+    def write_steps(self, steps):
+        self.steps.write_text(json.dumps({"steps": steps}), encoding="utf-8")
+
+    def run_steps(self, *options):
+        return run("heavy_lock.py", "--lock", self.lock, "run-steps", "--owner", "lead", "--steps", str(self.steps), *options)
+
+    def test_steps_run_in_order_under_one_hold_each_into_its_log(self):
+        status = [sys.executable, str(SCRIPTS / "heavy_lock.py"), "--lock", self.lock, "status"]
+        self.write_steps([
+            {"name": "hold", "cmd": status, "log": "logs/hold.log", "expect": ["HEAVY_LOCK held owner=lead"]},
+            {"name": "env", "cmd": [sys.executable, "-c", "import os; print('value', os.environ['TRIO_STEP'])"],
+             "log": "logs/env.log", "env": {"TRIO_STEP": "42"}, "expect": ["value 42"]},
+            {"name": "exit", "cmd": [sys.executable, "-c", "import sys; sys.exit(3)"], "log": "logs/exit.log"},
+        ])
+        result = self.run_steps()
+        self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
+        self.assertIn("STEP 1/3 hold PASS rc=0 expect=ok", result.stdout)
+        self.assertIn("STEP 2/3 env PASS", result.stdout)
+        self.assertIn("STEP 3/3 exit FAIL rc=3", result.stdout)
+        self.assertIn("HEAVY_LOCK steps: 2 passed, 1 failed, 0 not run", result.stdout)
+        self.assertIn("value 42", (self.steps.parent / "logs" / "env.log").read_text(encoding="utf-8"))
+        self.assertNotIn("value 42", result.stdout)
+        self.assertFalse(Path(self.lock).exists())
+
+    def test_missing_expected_line_fails_the_step_and_stop_on_fail_skips_the_rest(self):
+        self.write_steps([
+            {"name": "quiet", "cmd": [sys.executable, "-c", "print('Ran 3 tests')"], "log": "a.log", "expect": ["OK"]},
+            {"name": "later", "cmd": [sys.executable, "-c", "pass"], "log": "b.log"},
+        ])
+        result = self.run_steps("--stop-on-fail")
+        self.assertEqual(result.returncode, 1, result.stdout)
+        self.assertIn("STEP 1/2 quiet FAIL rc=0 expect=missing 'OK'", result.stdout)
+        self.assertIn("STEP 2/2 later NOT_RUN", result.stdout)
+        self.assertFalse((self.steps.parent / "b.log").exists())
+
+    def test_a_hung_step_is_stopped_and_the_next_step_still_runs(self):
+        self.write_steps([
+            {"name": "hung", "cmd": [sys.executable, "-c", "import time; time.sleep(60)"], "log": "hung.log", "idle_minutes": 0.03},
+            {"name": "next", "cmd": [sys.executable, "-c", "print('done')"], "log": "next.log", "expect": ["done"]},
+        ])
+        started = time.monotonic()
+        result = self.run_steps()
+        self.assertEqual(result.returncode, 1, result.stdout)
+        self.assertIn("STEP 1/2 hung FAIL rc=124 idle-stopped", result.stdout)
+        self.assertIn("STEP 2/2 next PASS", result.stdout)
+        self.assertIn("without output", (self.steps.parent / "hung.log").read_text(encoding="utf-8"))
+        self.assertLess(time.monotonic() - started, 30)
+        self.assertFalse(Path(self.lock).exists())
+
+    def test_busy_lock_runs_no_step(self):
+        run("heavy_lock.py", "--lock", self.lock, "acquire", "--owner", "review-1", "--cmd", "full check")
+        self.write_steps([{"name": "one", "cmd": [sys.executable, "-c", "pass"], "log": "one.log"}])
+        result = self.run_steps()
+        self.assertEqual(result.returncode, 3, result.stdout)
+        self.assertFalse((self.steps.parent / "one.log").exists())
+
+    def test_dry_run_checks_the_file_without_a_lock(self):
+        self.write_steps([
+            {"name": "one", "cmd": [sys.executable, "-c", "pass"], "log": "one.log"},
+            {"name": "two", "cmd": [sys.executable, "-c", "pass"], "log": "two.log", "cwd": "."},
+        ])
+        result = run("heavy_lock.py", "run-steps", "--owner", "w07", "--steps", str(self.steps), "--dry-run", env={"TRIO_HEAVY_LOCK": ""})
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertIn("HEAVY_LOCK steps file ok: 2 steps", result.stdout)
+        self.assertIn(str(self.steps.parent / "one.log"), result.stdout)
+        self.assertFalse((self.steps.parent / "one.log").exists())
+
+    def test_malformed_steps_are_refused_with_each_problem(self):
+        self.write_steps([{"name": "one", "command": ["x"], "log": "one.log"}, {"cmd": [], "log": ""}])
+        result = self.run_steps("--dry-run")
+        self.assertEqual(result.returncode, 2)
+        self.assertIn("step 1: unknown keys ['command']", result.stderr)
+        self.assertIn("step 1: cmd must be a non-empty list of strings", result.stderr)
+        self.assertIn("step 2: needs a name", result.stderr)
+        self.assertIn("step 2: needs a log path", result.stderr)
+
+
 def _codex_row(stamp, used_percent, resets_at, secondary=None):
     limits = {"primary": {"used_percent": used_percent, "window_minutes": 10080, "resets_at": resets_at}, "secondary": secondary}
     return json.dumps({"timestamp": stamp, "type": "event_msg", "payload": {"type": "token_count", "rate_limits": limits}})

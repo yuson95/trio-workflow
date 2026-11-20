@@ -7,7 +7,7 @@ Role: Reviewer. Plans and change requests are the builder's only source of requi
 1. **Check the size.**
    - A change of one or two files with an obvious approach needs no plan: use a change request (B) or the light path.
    - Large or cross-cutting work gets a plan with stops.
-2. **Read the state**: `00_FLOW`, earlier plans' handoff docs, and the open items in recent `RESULT` files that have no home yet.
+2. **Read the state**: `00_FLOW`, earlier plans' handoff docs, and the open items in recent `RESULT` files that have no home yet. Open lessons about the checks themselves (a flaky test, the lock, a timeout under load) go into this plan's first batch.
 3. **Read the code and verify the facts.** Every "current state" line carries a file or function pointer. Route broad exploration to workers that return file pointers, conventions, test commands and entry points, not dumps.
 4. **Settle open questions before writing** (settle forks by running):
    - feasibility questions get a probe in `probes/`; layout questions get a prototype (`*_MOCKUP.html`);
@@ -21,6 +21,7 @@ Role: Reviewer. Plans and change requests are the builder's only source of requi
    - a **You see** line: one observable result, such as a page state, a stored value or an output line;
    - **invariants**: for a requirement that computes numbers or changes stored state, the properties that must hold for every input, each with the test that checks it across varied inputs (property-based where the project has such a library, otherwise a table of contrasting cases). Examples: "the site baseline is the same whichever measures a portfolio holds"; "a saving is deducted once along a chain of derived curves". Other requirements write `none`;
    - for a requirement that adds a **blocking check** (a refused save, a stopped calculation): the harm it prevents and why a visible label would not prevent it. Where a label would do, use the label and let the work continue;
+   - for a requirement that **reverses an existing behavior** (a refusal becomes a label, a classification moves, a status flips): the **census** of what asserts the old behavior. Search for its codes and status names, and run the affected suites in every interpreter and test root the project uses, counting skipped tests: a suite skipped in the default interpreter still asserts the old rule. List the test lines and contract cases found; they belong to the batch that flips the behavior;
    - a **prototype** for every review-gated requirement: an HTML mockup, an annotated screenshot or an operator-supplied reference, confirmed at stop 1 (see [ui-acceptance.md](ui-acceptance.md) §1);
    - verification:
      - **unit**: the tests that gain cases;
@@ -82,6 +83,7 @@ Which general rules bind this plan; which items the UI conventions bind; what is
 - You see: <one observable result>
 - Invariants: <property; the test that checks it over varied inputs> / none
 - Blocking check (only if one is added): <the harm it prevents; why a label would not do>
+- Reverses (only if it reverses an existing behavior): <the old behavior; the census command; the test lines and contract cases it found>
 - Verify, unit: <test file and the case it gains>
 - Verify, live: <scenario via the verification recipe; screenshot or output; pass when …> plus one regression scenario on main and the candidate
 - Verify, perf (if relevant): <metric; baseline on main first; failing number>
@@ -113,7 +115,7 @@ Written before the final stop to docs/development/history/<yyyy-mm>/<name>_HANDO
 3. **Choose the route.** All edits go to the builder, even one-line ones.
    - **All light-path conditions hold**: give the operator one line to forward: "Small change: <page> <table or area>, now <…>, should be <…>; display only; run the quick check and all frontend suites; send screenshots." After the builder is done, the operator says "看一下小改" and the review follows branch D of [review.md](review.md). Several small changes may merge together.
    - **Otherwise**: write `REQUEST_<topic>.md`.
-4. Write the request from the template below, with the operator's words and the date in the background section. A change to numbers or stored state names its invariants in the Verification column, and a new blocking check names its harm, as in A step 5.
+4. Write the request from the template below, with the operator's words and the date in the background section. A change to numbers or stored state names its invariants in the Verification column, a new blocking check names its harm, and a reversal of existing behavior carries its census, as in A step 5.
 5. For an addition while the builder is mid-work, write a "supplement" paragraph for the **same** builder session and mirror it in the request.
 6. Update `00_FLOW`. Requests go into the current step and the open items; small changes get one line when they merge.
 

@@ -178,7 +178,7 @@ Put the absolute path of `skills/trio-workflow/SKILL.md` into the agent's system
 | `ui-acceptance.md` | UI acceptance: prototypes before code, screenshot matrix, visual review, walkthrough findings turned into structure |
 | `templates/en/`, `templates/zh/` | The handoff files (`00_START_HERE`, `00_FLOW`, `0_RULES`, `PROMPTS`) in English and Chinese |
 | `scripts/bootstrap_handoff.py` | Creates a project's handoff folder from the templates, with names filled in; never overwrites |
-| `scripts/heavy_lock.py` | Machine-wide lock so heavy checks from different sessions never overlap; a hung run is stopped after 30 minutes without output |
+| `scripts/heavy_lock.py` | Machine-wide lock so heavy checks never overlap, not even two runs of one owner; a hung run is stopped after 30 minutes without output; `run-steps` runs a worker's steps file under one hold |
 | `scripts/log_decision.py` | Appends one row to a plan's decision trail |
 | `scripts/check_plan.py` | Checks a plan's structure (types, "You see" lines, invariants, verification, prototypes for review-gated items, defaults, file ownership) |
 | `scripts/screenshot_sheet.py` | Builds the page × state contact sheet, `main` beside the candidate |

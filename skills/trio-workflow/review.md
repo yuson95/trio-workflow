@@ -59,8 +59,9 @@ Run only the quick check when the code is identical to `main`. The other steps s
 3. **Verify independently**, as hard as the check tiers below require:
    - **Full check**: rerun it in a separate review worktree (`git worktree add --detach <short path outside the repo> <candidate sha>`), in a quiet environment: no browser runs and no large copies meanwhile, and take the heavy-check lock named in `0_RULES` (`scripts/heavy_lock.py ... run --owner <review session> -- <full check command>`). Keep the worktree until the re-review is done and remove it at cleanup.
    - **Live**: start an isolated instance from the candidate with a synthetic copy, following the verification recipe named in `0_RULES`, and drive the changed pages. Never use the operator's service.
+   - **Target**: every probe or rerun script prints the path and commit of the code it imports or the instance it calls; check that line before reading the result. Scripts copied from an earlier stop still point at the old tree.
    - **Numbers**: cross-check every new number through an independent path (explain the number).
-   - **Invariants**: for each invariant the plan names, break the code it guards with one small edit in the review worktree, confirm its test goes red, then revert the edit. A test that stays green is a finding.
+   - **Invariants**: read the builder's break record for each invariant. Then break the guarded code yourself, one small edit at a time in the review worktree, for every invariant behind a high-severity finding of this plan, for every invariant without a record, and for a sample of the rest; confirm each test goes red, then revert the edit. A test that stays green is a finding. The `RESULT` lists which invariants you broke.
    - **Expand**: chart axis order, empty projects, pages opened directly rather than from history, load time with many runs.
    - **Look at the page** for every UI change: open the builder's contact sheet ([ui-acceptance.md](ui-acceptance.md) §2). Run the visual review (§3) yourself when the builder's pass was same-family or missing. Missing states without a written reason count as findings.
 4. **Adversarial pass.** Try to break the change against its stated intent. If pstack is installed in your tool, its interrogate skill runs this pass (see [layers.md](layers.md)); the rules below still decide what counts.
@@ -83,6 +84,7 @@ If the operator told the builder "passed" before the review finished, say once, 
 - A verdict applies to one patch, identified by `git patch-id`. Compare the patch-id at the old verdict SHA with the new head's. If they match, the verdict stands; if not, re-verify the changed parts.
 - Whether to rerun the full check follows the check tiers: rerun it when the fix touched the backend, the solver or backend tests.
 - New problems found during the fix get new IDs in the re-review's `RESULT`.
+- **New IDs in the round**: a change request or operator's direct requests that joined the fix round are reviewed as at a stop (A): the material check, independent verification with invariants, and the adversarial pass. The bullets above cover only the fix IDs.
 
 ## C. Design review
 

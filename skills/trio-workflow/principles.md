@@ -68,6 +68,7 @@ Each entry gives a trigger ("when") and an action ("do"). Most are adapted from 
 - **Encode lessons in structure.**
   - When: you catch yourself writing the same instruction a second time.
   - Do: turn it into a check, test, lint, script or lock. If it needs judgment and cannot be encoded, make the instruction prominent and add an example of the failure. Once a structural fix exists, drop the instruction.
+  - A lesson about the checks themselves (a flaky test, the lock, a timeout under load) is fixed before the next plan's first batch: every plan that runs before the fix pays for it again.
 - **Build the lever** (tools over hand work).
   - When: non-trivial or repeated work.
   - Do: build the script or tool that does or proves the work, such as the project's verification recipe or a harness for a synthetic project. The tool is the artifact a reviewer reruns.

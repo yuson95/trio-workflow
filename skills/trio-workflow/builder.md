@@ -23,7 +23,7 @@ Role: Builder. The lead coordinates, integrates and reports, and never writes th
    - the goal, restated;
    - the requirement IDs, their invariants, and the plan sections for this batch;
    - the batch type and the inner playbook, from [layers.md](layers.md);
-   - the files the worker may write (its owned files), and the files it must leave alone;
+   - the files the worker may write (its owned files), and the files it must leave alone. A batch that reverses an existing behavior owns every test line and contract case that asserts the old behavior: rerun the census from the plan or request (planning.md A step 5) on the integration head first, since later batches may have added assertions. Code and tests that must change together go to one batch;
    - forbidden actions: push, merge into `main`, touching the operator's service or client data;
    - the evidence that proves done: commands with their expected output, live scenarios from the verification recipe, screenshots;
    - the previous handoff;
@@ -36,7 +36,8 @@ Role: Builder. The lead coordinates, integrates and reports, and never writes th
    - Check usage before every fan-out and at every integration (token rule 10). Below the reduce threshold, run one batch at a time; below the pause threshold, pause.
    - Each worker gets its own worktree on a short path outside the repo, and its own local branch.
    - One writer per file. A worker that needs another batch's file writes the request into its handoff, and the owner makes the change.
-   - Heavy checks (full check, solver tests, browser suites, screenshot runs, timing runs, load reproduction) run one at a time, across every session on the machine, under the lock file named in `0_RULES`: `python <skill dir>/scripts/heavy_lock.py --lock <path> run --owner <session> --wait 7200 -- <command>`.
+   - Heavy checks (full check, solver tests, browser suites, screenshot runs, timing runs, load reproduction) run one at a time, across every session on the machine, under the lock file named in `0_RULES`: `python <skill dir>/scripts/heavy_lock.py --lock <path> run --owner <session> --wait 7200 -- <command>`. Each run holds the lock alone, even against its own owner; commands that must run under one hold go into one steps file.
+     - **Workers leave the waiting to the lead.** A worker runs a heavy check with `--wait 0`. When the lock is busy (exit 3), it writes the runs into `batch-notes/<batch>_heavy-steps.json` (command, log, expected summary lines; see `heavy_lock.py --help`), checks the file with `run-steps --dry-run`, and hands back `NEEDS_HEAVY_RUN` with the path. The lead runs the files in one queue at integration: `heavy_lock.py --lock <path> run-steps --owner <lead> --steps <file> --wait 7200`, reading only the `STEP` summary lines. A failed step goes to a fix worker with its log path.
      - A hung run must not hold the lock. `run` stops the command's whole process tree and releases the lock after 30 minutes without output, and exits 124. A command that writes to its own log file gets `--watch <log>`, so the log's growth counts as output. For a command that is legitimately quiet for longer, raise `--idle-minutes`; never turn it off for browser or screenshot runs.
      - An idle stop is a failed run: record it as `NOT_RUN` with the reason, find what hung, and rerun.
 6. **Integrate each batch**:
@@ -108,7 +109,7 @@ Use this when the operator pastes the resume prompt or says "continue <plan>". I
 
 Every model call resends the whole context of the agent that makes it. A call at 400k tokens of context costs about twice one at 200k, and a message costs two calls: one to send, one to wake the receiver. Rules 8 to 10 keep contexts small and calls few.
 
-1. One lead session per plan. When the lead's own context passes the cap in rule 8, it pauses and continues in a fresh session through Resume. Workers are disposable; the lead keeps only handoffs and summaries.
+1. One lead session per plan. When the lead's own context passes the cap for its tool in rule 8, it pauses and continues in a fresh session through Resume. When the builder tool changes mid-plan, update the caps in `0_RULES` to the new tool's row. Where the lead cannot open a session itself, it writes the resume prompt into the progress file and asks the operator once: a fresh session, or continue here. Workers are disposable; the lead keeps only handoffs and summaries.
 2. A batch handoff is at most 30 lines and is saved as `batch-notes/<batch>_HANDOFF.md`. The next worker reads only that handoff.
 3. The progress file is at most 60 lines. After compaction or a break, read it first.
 4. Read `CURRENT_STATUS.md` first; open history files by name, only when needed.
@@ -117,7 +118,7 @@ Every model call resends the whole context of the agent that makes it. A call at
 7. Searches respect `.ignore`. Never read single-line giant files whole.
 8. **Worker lifetime.** A worker ends at the first of these:
    - its batch is integrated;
-   - about 150 of its own tool calls. Waiting adds no context: one long wait for the lock, a check or another agent counts as one call, and wall time does not count;
+   - about 150 of its own tool calls. Wall time does not count, but a long wait costs as many calls as the tool needs to keep waiting (in Claude Code a command waits at most ten minutes), which is why heavy runs go back to the lead (step 5);
    - its context passes the cap in `0_RULES`. Context grows at different rates per tool, so the defaults differ:
 
      | Builder tool | Context cap | Bug-fix or investigation batch |
@@ -140,7 +141,8 @@ Every model call resends the whole context of the agent that makes it. A call at
    **Successor.** The rest of the batch goes to a fresh worker. It reads the handoff and the read-first files, and restates the goal. If the branch head is the commit of the handoff's quick-check log, it reuses that log; otherwise it runs the quick check. Then it confirms the predecessor's claims with targeted checks on the real artifact before building on them. It does not repeat what the handoff rules out.
 
    **Batch size.** Size each batch so one worker finishes it in about 100 tool calls, well inside the limit. Split by module or test group, or by about 20 items of a list; never by theme alone ("fix every failure", "cover every endpoint"). A batch that needs a successor was cut too large: split what remains before handing it on, so each successor gets a batch it can finish. Never keep a worker alive to save its context.
-9. **Message budget.** A worker sends the lead one message per unit, when the unit ends: the handoff path, one status (`DONE`, `BLOCKED` or `NEEDS_DECISION`) and its tool-call count so far. It sends nothing in between.
+9. **Message budget.** A worker sends the lead one message per unit, when the unit ends: the handoff path, one status (`DONE`, `BLOCKED`, `NEEDS_DECISION` or `NEEDS_HEAVY_RUN`) and its tool-call count so far. It sends nothing in between.
+   - A worker whose tool refuses to write its handoff file (Claude Code sub-agents may not write report files) puts the full handoff text in that one message. The lead saves it unchanged and adds a last line saying so.
    - Progress goes into the handoff file.
    - Requests to another batch's owner go into the handoff's request list; the lead passes them on at integration.
    - The lead does not ask workers for status. It reads their handoff files and commits.
@@ -173,6 +175,7 @@ Restatement: <goal, owned files, untouched files; 3–5 sentences>
 - IDs and status:
 - Commits and branch:
 - Evidence: <commands and summary lines; live scenarios and screenshot paths>
+- Invariant breaks: <invariant → edited file:line → test that went red; reverted> / none
 - Requests for other owners' files:
 - Tried and ruled out: <approach → why it failed, one line each>
 - Read first: <file:line ranges the next worker needs, at most 8>
@@ -201,7 +204,7 @@ Append with `python <skill dir>/scripts/log_decision.py <file> <phase> <decision
 - Integration wip/<key> @ <sha>; base main @ <sha>
 - Frozen candidate @ <sha>; fixes after the freeze: <sha, files, which checks reran> / none
 ## 1. Goal (restated)
-## 2. Requirement IDs and status (implemented and verified / implemented, not verified / not done or limited)
+## 2. Requirement IDs and status (implemented and verified / implemented, not verified / not done or limited); for each invariant, the handoff with its break record
 ## 3. Checks, each PASS / FAIL / NOT_RUN, with the SHA it ran on, summary lines and log paths
 ## 4. Live evidence (scenario → screenshot or output → pass/fail)
 ## 5. Main changed files

@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.9.0 (2026-11-20)
+
+From the fix round and re-review of one plan's final stop: 30 worker units in about a day, 11 interruptions, 4 workers that spent their lifetime waiting for the heavy-check lock.
+
+- **Lock fix** (`heavy_lock.py`): a second `run` by the same owner no longer starts at once. Before, it ran beside the first, and when the first finished it released the lock while the second was still running, so a third session could start a heavy run. Each acquisition now carries a token, and a run releases only its own.
+- **`run-steps`** (`heavy_lock.py`): runs the steps of a JSON file in order under one hold, each into its own log, with one summary line per step (exit code, expected lines found, time, log path). `--dry-run` checks the file without the lock.
+- **Workers leave the waiting to the lead** (builder.md step 5, token rule 8): a long wait costs a Claude Code worker one call per ten minutes, so waiting for the lock used up whole worker lifetimes. A worker that finds the lock busy hands back a steps file with `NEEDS_HEAVY_RUN`; the lead runs the files in one queue at integration.
+- **Census for a reversal** (planning.md A step 5 and B step 4, builder.md step 3): when a requirement reverses an existing behavior, the plan or request lists the tests and contract cases that assert the old behavior, found by searching for its codes and running the suites in every interpreter, skipped tests included. That batch owns them. In the round behind this release, 9 of 11 interruptions came from tests of the old behavior sitting in other batches' files, and the audit had missed two tests that the default interpreter skips.
+- **Re-review scope** (review.md B): IDs that joined a fix round through a change request or the operator's direct requests are reviewed as at a stop. Only the fix IDs follow the lighter re-review.
+- **Invariant breaks** (layers.md rule 5, builder.md handoff and stop material, review.md step 3): the builder records each break (edited line, red test, reverted). The reviewer reads the records and breaks, itself, the invariants behind high-severity findings, those without a record and a sample of the rest. 0.8.0 asked the reviewer to break every invariant; with 15 invariants the reviewer broke 5, and the builder's records covered the rest.
+- **Check-infrastructure lessons first** (principles.md, planning.md A step 2): a lesson about the checks themselves goes into the next plan's first batch. A load-related timeout deferred to a later plan failed 2 of 4 full checks in the plan between.
+- **Smaller rules**: a worker whose tool refuses its handoff file sends the text and the lead saves it (token rule 9); reviewer probes print the code path and commit they ran against (review.md step 3); the lead's cap follows its tool, `0_RULES` is updated when the builder tool changes, and a lead that cannot open a session asks the operator once (token rule 1, `0_RULES` templates).
+
 ## 0.8.0 (2026-11-20)
 
 Spend review effort where a run can settle it. pstack warns that adversarial review of a plan with no code behind it invents risks that never happen, and keeps only findings a run proves. trio's adversarial pass already counted only reproduced findings, but its plan and design reviews had no such limit, and plans had no place for the properties a change must keep. At one plan's final stop, the two defects that changed reported numbers (a site-wide baseline that depended on which measures a portfolio held, and a saving that could be deducted twice) passed every unit test and surfaced only in the reviewer's own runs. On the same plan, a provenance rule written at planning time as hard blocks everywhere had to be relaxed to visible labels once the operator ran into it.
