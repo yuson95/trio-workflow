@@ -391,14 +391,17 @@ def _codex_row(stamp, used_percent, resets_at, secondary=None):
 
 
 class UsageGuardTests(unittest.TestCase):
-    """The guard reads Codex's newest rate-limit reading and turns it into FULL / ONE_WORKER / PAUSE."""
+    """The guard reads Codex's newest rate-limit reading and turns it into FULL / ONE_WORKER / PAUSE.
+
+    Default: full speed until 3% left. ONE_WORKER only inside a reserve band a project sets, waived near the reset.
+    """
 
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()
         self.home = Path(self.tmp.name)
         self.day = self.home / "sessions" / "2026" / "11" / "18"
         self.day.mkdir(parents=True)
-        self.future = int(time.time()) + 86400
+        self.future = int(time.time()) + 3 * 86400
 
     def tearDown(self):
         self.tmp.cleanup()
@@ -417,24 +420,41 @@ class UsageGuardTests(unittest.TestCase):
         self.write_session("new.jsonl", [_codex_row("2026-11-18T09:00:00Z", 10.0, self.future),
                                          _codex_row("2026-11-18T11:00:00Z", 75.0, self.future),
                                          json.dumps({"timestamp": "2026-11-18T11:01:00Z", "type": "response_item"})], now)
-        result = self.guard()
+        result = self.guard("--reduce-below", "30")
         self.assertEqual(result.returncode, 3, result.stdout)
         self.assertIn("USAGE ONE_WORKER: 25% left", result.stdout)
 
-    def test_low_usage_pauses_and_plenty_runs_full(self):
-        self.write_session("s.jsonl", [_codex_row("2026-11-18T11:00:00Z", 95.0, self.future)], time.time())
+    def test_full_speed_down_to_the_reserve_then_pause(self):
+        self.write_session("s.jsonl", [_codex_row("2026-11-18T11:00:00Z", 98.0, self.future)], time.time())
         self.assertEqual(self.guard().returncode, 4)
-        self.write_session("s.jsonl", [_codex_row("2026-11-18T12:00:00Z", 40.0, self.future)], time.time())
+        self.write_session("s.jsonl", [_codex_row("2026-11-18T12:00:00Z", 90.0, self.future)], time.time())
         full = self.guard()
         self.assertEqual(full.returncode, 0, full.stdout)
-        self.assertIn("USAGE FULL: 60% left", full.stdout)
+        self.assertIn("USAGE FULL: 10% left", full.stdout)
+
+    def test_reserve_band_is_waived_near_the_reset(self):
+        soon = int(time.time()) + 2 * 3600
+        self.write_session("s.jsonl", [_codex_row("2026-11-18T11:00:00Z", 80.0, soon)], time.time())
+        result = self.guard("--reduce-below", "30")
+        self.assertEqual(result.returncode, 0, result.stdout)
+        self.assertIn("reserve band waived: the window resets in 2.0 h", result.stdout)
+
+    def test_operator_numbers_with_the_reset_time(self):
+        far = self.guard("--left", "20", "--reduce-below", "30", "--resets-in", "48")
+        self.assertEqual(far.returncode, 3, far.stdout)
+        near = self.guard("--left", "20", "--reduce-below", "30", "--resets-in", "6")
+        self.assertEqual(near.returncode, 0, near.stdout)
+        self.assertIn("resets in 6.0 h", near.stdout)
+        self.assertIn("reserve band waived", near.stdout)
+        self.assertEqual(self.guard("--left", "20").returncode, 0)
+        self.assertEqual(self.guard("--left", "2", "--resets-in", "1").returncode, 4)
 
     def test_the_tighter_of_two_windows_counts(self):
-        secondary = {"used_percent": 92.0, "window_minutes": 300, "resets_at": self.future}
+        secondary = {"used_percent": 98.0, "window_minutes": 300, "resets_at": self.future}
         self.write_session("s.jsonl", [_codex_row("2026-11-18T11:00:00Z", 10.0, self.future, secondary)], time.time())
         result = self.guard()
         self.assertEqual(result.returncode, 4, result.stdout)
-        self.assertIn("8% left in the Codex 300-minute window", result.stdout)
+        self.assertIn("2% left in the Codex 300-minute window", result.stdout)
 
     def test_a_window_that_has_reset_counts_as_full(self):
         self.write_session("s.jsonl", [_codex_row("2026-11-18T11:00:00Z", 99.0, int(time.time()) - 60)], time.time())
@@ -443,7 +463,7 @@ class UsageGuardTests(unittest.TestCase):
         self.assertIn("has reset since this reading", result.stdout)
 
     def test_operator_number_and_missing_reading(self):
-        given = self.guard("--left", "8")
+        given = self.guard("--left", "2")
         self.assertEqual(given.returncode, 4)
         self.assertIn("given by the operator", given.stdout)
         missing = run("usage_guard.py", "--codex-home", str(self.home / "nowhere"))
@@ -453,6 +473,7 @@ class UsageGuardTests(unittest.TestCase):
     def test_thresholds_are_validated(self):
         self.assertEqual(self.guard("--left", "50", "--reduce-below", "10", "--pause-below", "20").returncode, 2)
         self.assertEqual(self.guard("--left", "150").returncode, 2)
+        self.assertEqual(self.guard("--left", "50", "--resets-in", "-1").returncode, 2)
 
 
 def _iso(seconds_ago):

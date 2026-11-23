@@ -33,7 +33,7 @@ Role: Builder. The lead coordinates, integrates and reports, and never writes th
 4. **Start with one unit.** Take the first batch all the way through (kickoff, worker, verification, integration) before fanning out. A flawed kickoff then costs one worker instead of many.
 5. **Run in parallel by the plan's table.**
    - Start batches that have no dependency and no overlapping owned files together, up to the cap in `0_RULES` (default 3).
-   - Check usage before every fan-out and at every integration (token rule 10). Below the reduce threshold, run one batch at a time; below the pause threshold, pause.
+   - Check usage before every fan-out and at every integration, and follow the verdict (token rule 10).
    - Each worker gets its own worktree on a short path outside the repo, and its own local branch.
    - One writer per file. A worker that needs another batch's file writes the request into its handoff, and the owner makes the change.
    - Heavy checks (full check, solver tests, browser suites, screenshot runs, timing runs, load reproduction) run one at a time, across every session on the machine, under the lock file named in `0_RULES`: `python <skill dir>/scripts/heavy_lock.py --lock <path> run --owner <session> --wait 7200 -- <command>`. Each run holds the lock alone, even against its own owner; commands that must run under one hold go into one steps file.
@@ -146,12 +146,12 @@ Every model call resends the whole context of the agent that makes it. A call at
    - Progress goes into the handoff file.
    - Requests to another batch's owner go into the handoff's request list; the lead passes them on at integration.
    - The lead does not ask workers for status. It reads their handoff files and commits.
-10. **Usage.** Before every fan-out and at every integration, run `python <skill dir>/scripts/usage_guard.py` with the thresholds in `0_RULES` (defaults: one worker below 30% left, pause below 10% left).
-    - `FULL`: run up to the worker cap.
-    - `ONE_WORKER`: one batch at a time; start no parallel batches.
-    - `PAUSE`: follow Pause.
+10. **Usage.** Use each usage window fully and stop cleanly. What is left when a window resets expires, so holding back only moves work later. Before every fan-out and at every integration, run `python <skill dir>/scripts/usage_guard.py` with the thresholds in `0_RULES` (default: full speed until 3% left, then pause).
+    - `FULL`: run up to the worker cap. Defer no batch and narrow no fan-out to wait for a reset.
+    - `PAUSE`: follow Pause, and resume after the reset. A window that runs out mid-unit costs at most that unit, because handoffs are updated at every unit end.
+    - `ONE_WORKER` (one batch at a time) comes only from a reserve band that `0_RULES` sets with `--reduce-below`, for example to keep quota for a reviewer who shares the window before a stop. With `--resets-in` the band is waived within 24 hours of the reset (`--near-hours`), since what it would keep expires anyway.
     - Add `--threads` to list each live worker's context. A worker marked `NEAR` finishes its current unit and ends; one marked `OVER` commits `wip:` and ends now (rule 8).
-    - Without `--left`, the script reads Codex's own usage record, which says nothing about any other tool. A Claude Code lead in the desktop app reads the plan's windows (5-hour and weekly) with the app's usage tool, takes the smallest percent left, and passes it as `--left`. For other tools, pass the number the operator reads from the tool's usage page. If no number is available, write "usage unknown" in the progress file and keep to one worker.
+    - Without `--left`, the script reads Codex's own usage record, which says nothing about any other tool. A Claude Code lead in the desktop app reads the plan's windows (5-hour and weekly) with the app's usage tool, takes the smallest percent left, and passes it as `--left`, with the hours until that window resets as `--resets-in`. For other tools, pass the numbers the operator reads from the tool's usage page. If no number is available, write "usage unknown" in the progress file and keep to one worker.
 
 ## Templates
 

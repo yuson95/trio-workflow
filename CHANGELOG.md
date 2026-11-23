@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.10.0 (2026-11-23)
+
+Use each usage window fully. What is left when a window resets expires, so holding back never buys more work in a window; it only moves work later. The guard's old defaults (one worker below 30% left, pause below 10%) looked only at the percent left. A builder paused at 4% of its weekly window with a day and a half to the reset, and a lead held back parallel batches to wait for a 5-hour reset. Both times the operator overrode it ("use the quota fully").
+
+- **Defaults** (`usage_guard.py`): `FULL` until 3% left, then `PAUSE`, a reserve just large enough to commit wip and update the handoff and progress file. A window that runs out mid-unit costs at most that unit.
+- **Reserve band only on request**: `ONE_WORKER` appears only when a project sets `--reduce-below`, for example to keep quota for a reviewer who shares the window before a stop.
+- **Reset-aware**: `--resets-in <hours>` (read from Codex's record when available) waives the reserve band within `--near-hours` (default 24) of the reset.
+- builder.md token rule 10 and step 5, the `0_RULES` templates, SKILL.md and the README now say the same: defer no batch and narrow no fan-out to wait for a reset.
+
 ## 0.9.0 (2026-11-20)
 
 From the fix round and re-review of one plan's final stop: 30 worker units in about a day, 11 interruptions, 4 workers that spent their lifetime waiting for the heavy-check lock.
