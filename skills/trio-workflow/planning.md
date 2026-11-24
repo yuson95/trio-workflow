@@ -4,10 +4,11 @@ Role: Reviewer. Plans and change requests are the builder's only source of requi
 
 ## A. Draft a plan
 
-1. **Check the size.**
-   - A change of one or two files with an obvious approach needs no plan: use a change request (B) or the light path.
-   - Large or cross-cutting work gets a plan with stops.
-2. **Read the state**: `00_FLOW`, earlier plans' handoff docs, and the open items in recent `RESULT` files that have no home yet. Open lessons about the checks themselves (a flaky test, the lock, a timeout under load) go into this plan's first batch.
+1. **Route by risk, not by file count.** A one-file change to a calculation can carry more risk than ten display files.
+   - **Light path**: display-only changes that meet the light-path conditions (B).
+   - **Change request** (B): a contained change with an obvious approach. A change to numbers still names its invariants and expected values (step 5), and a storage-format change still needs its `DESIGN_*.md` answered before code (step 7).
+   - **Plan with stops**: cross-cutting work, several dependent changes, or a change that is hard to undo (a migration, deleted data, a contract other lines use).
+2. **Read the state**: `00_FLOW`, earlier plans' handoff docs, and the open items in recent `RESULT` files that have no home yet. Open lessons about the checks themselves (a flaky test, the lock, a timeout under load) go into this plan's first batch. Read the operator's earlier declines too (`00_FLOW` decisions, the decision trail, earlier plans' appendix B): re-propose a declined option only with new evidence, and say what changed.
 3. **Read the code and verify the facts.** Every "current state" line carries a file or function pointer. Route broad exploration to workers that return file pointers, conventions, test commands and entry points, not dumps.
 4. **Settle open questions before writing** (settle forks by running):
    - feasibility questions get a probe in `probes/`; layout questions get a prototype (`*_MOCKUP.html`);
@@ -20,6 +21,7 @@ Role: Reviewer. Plans and change requests are the builder's only source of requi
    - a **type**: feature, bug fix, refactoring, perf, hillclimb, visual parity, prototype or investigation. The type picks the inner playbook (see [layers.md](layers.md));
    - a **You see** line: one observable result, such as a page state, a stored value or an output line;
    - **invariants**: for a requirement that computes numbers or changes stored state, the properties that must hold for every input, each with the test that checks it across varied inputs (property-based where the project has such a library, otherwise a table of contrasting cases). Examples: "the site baseline is the same whichever measures a portfolio holds"; "a saving is deducted once along a chain of derived curves". Other requirements write `none`;
+   - **expected values**: for a requirement that computes numbers, at least one worked example (inputs and expected outputs) that you compute before any code exists, through a path independent of the code to be written: a hand calculation or a probe script in `probes/`, kept for appendix A. The builder copies the expected values into a test unchanged. When code and example disagree, the builder records both and the reviewer decides at the stop; an expected value changes only through a logged decision, never to turn a test green;
    - for a requirement that adds a **blocking check** (a refused save, a stopped calculation): the harm it prevents and why a visible label would not prevent it. Where a label would do, use the label and let the work continue;
    - for a requirement that **reverses an existing behavior** (a refusal becomes a label, a classification moves, a status flips): the **census** of what asserts the old behavior. Search for its codes and status names, and run the affected suites in every interpreter and test root the project uses, counting skipped tests: a suite skipped in the default interpreter still asserts the old rule. List the test lines and contract cases found; they belong to the batch that flips the behavior;
    - a **prototype** for every review-gated requirement: an HTML mockup, an annotated screenshot or an operator-supplied reference, confirmed at stop 1 (see [ui-acceptance.md](ui-acceptance.md) §1);
@@ -57,8 +59,11 @@ Role: Reviewer. Plans and change requests are the builder's only source of requi
 9. **Check the plan's structure**: run `python <skill dir>/scripts/check_plan.py <plan file>` and fix every line it prints until it reports `CHECK_PLAN ok`.
    - It checks that every requirement has a type, a "You see" line, invariants (or `none`), unit and live verification and a review gate; that every review-gated requirement has a prototype; that every decision has a default; and that every file has one owner batch unless it is marked append-only.
    - It recognizes these labels in a Chinese plan: 类型, 你会看到, 不变量, 单元验证, 实际操作验证, 走查, 原型; and in section titles: 需求, 决定, 批次, 独占文件, 依赖, 追加型.
-10. **Write the kickoff prompt** into `PROMPTS`, and update `00_FLOW`: roadmap, current step, decisions.
-11. **Reply**: the plan path, the checker's summary line, the decisions with their defaults, what the probes proved and what remains unproven, and the operator's next step (which prompt to paste where).
+10. **Get a challenge for a high-risk plan.** A plan that changes a storage format, a core calculation, a security boundary or a contract between lines gets one challenge before stop 1, so its author is not the only judge of its design.
+    - Write a prompt into `PROMPTS` that gives the plan and its code pointers, not your reasoning, and asks what would make the plan fail. The operator runs it on another model family, or on a fresh session when no other family is available.
+    - Findings follow "Before code exists" in [review.md](review.md). Save the answer as `<plan>_CHALLENGE.md` next to the plan, and answer every point: revise the plan, or record it in appendix B with the reason.
+11. **Write the kickoff prompt** into `PROMPTS`, and update `00_FLOW`: roadmap, current step, decisions.
+12. **Reply**: the plan path, the checker's summary line, the decisions with their defaults, what the probes proved and what remains unproven, the challenge's state for a high-risk plan, and the operator's next step (which prompt to paste where).
 
 ### Plan template
 
@@ -82,6 +87,7 @@ Which general rules bind this plan; which items the UI conventions bind; what is
 - Change:
 - You see: <one observable result>
 - Invariants: <property; the test that checks it over varied inputs> / none
+- Expected values (numbers only): <inputs → expected outputs; probe path or hand calculation>
 - Blocking check (only if one is added): <the harm it prevents; why a label would not do>
 - Reverses (only if it reverses an existing behavior): <the old behavior; the census command; the test lines and contract cases it found>
 - Verify, unit: <test file and the case it gains>
@@ -115,7 +121,7 @@ Written before the final stop to docs/development/history/<yyyy-mm>/<name>_HANDO
 3. **Choose the route.** All edits go to the builder, even one-line ones.
    - **All light-path conditions hold**: give the operator one line to forward: "Small change: <page> <table or area>, now <…>, should be <…>; display only; run the quick check and all frontend suites; send screenshots." After the builder is done, the operator says "看一下小改" and the review follows branch D of [review.md](review.md). Several small changes may merge together.
    - **Otherwise**: write `REQUEST_<topic>.md`.
-4. Write the request from the template below, with the operator's words and the date in the background section. A change to numbers or stored state names its invariants in the Verification column, a new blocking check names its harm, and a reversal of existing behavior carries its census, as in A step 5.
+4. Write the request from the template below, with the operator's words and the date in the background section. A change to numbers or stored state names its invariants in the Verification column, a change to numbers also its expected values computed before code, a new blocking check names its harm, and a reversal of existing behavior carries its census, as in A step 5.
 5. For an addition while the builder is mid-work, write a "supplement" paragraph for the **same** builder session and mirror it in the request.
 6. Update `00_FLOW`. Requests go into the current step and the open items; small changes get one line when they merge.
 

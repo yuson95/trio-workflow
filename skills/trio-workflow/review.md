@@ -28,7 +28,8 @@ Use the material path the operator gives. The `RESULT` file sits next to it, wit
 **Plan and contract stops** (usually stop 1, before business code exists) replace step 3 with these checks:
 
 - every requirement ID lands in a batch and has a checkable "You see" line;
-- every requirement that computes numbers or changes stored state names its invariants with their tests, and every new blocking check names the harm it prevents ([planning.md](planning.md) A step 5);
+- every requirement that computes numbers or changes stored state names its invariants with their tests, every requirement that computes numbers carries expected values from an independent path, and every new blocking check names the harm it prevents ([planning.md](planning.md) A step 5);
+- a high-risk plan has its challenge answered point by point ([planning.md](planning.md) A step 10);
 - the contracts (data shapes, interfaces, storage migration, page flow) match the current code; spot-check the key pointers;
 - the ownership table is complete and each hotspot has one owner;
 - the probe and prototype conclusions hold;
@@ -60,7 +61,7 @@ Run only the quick check when the code is identical to `main`. The other steps s
    - **Full check**: rerun it in a separate review worktree (`git worktree add --detach <short path outside the repo> <candidate sha>`), in a quiet environment: no browser runs and no large copies meanwhile, and take the heavy-check lock named in `0_RULES` (`scripts/heavy_lock.py ... run --owner <review session> -- <full check command>`). Keep the worktree until the re-review is done and remove it at cleanup.
    - **Live**: start an isolated instance from the candidate with a synthetic copy, following the verification recipe named in `0_RULES`, and drive the changed pages. Never use the operator's service.
    - **Target**: every probe or rerun script prints the path and commit of the code it imports or the instance it calls; check that line before reading the result. Scripts copied from an earlier stop still point at the old tree.
-   - **Numbers**: cross-check every new number through an independent path (explain the number).
+   - **Numbers**: cross-check every new number through an independent path (explain the number). Rerun the plan's expected-value probes against the candidate, and confirm the tests hold the plan's expected values unchanged, or that a logged decision changed them.
    - **Invariants**: read the builder's break record for each invariant. Then break the guarded code yourself, one small edit at a time in the review worktree, for every invariant behind a high-severity finding of this plan, for every invariant without a record, and for a sample of the rest; confirm each test goes red, then revert the edit. A test that stays green is a finding. The `RESULT` lists which invariants you broke.
    - **Expand**: chart axis order, empty projects, pages opened directly rather than from history, load time with many runs.
    - **Look at the page** for every UI change: open the builder's contact sheet ([ui-acceptance.md](ui-acceptance.md) §2). Run the visual review (§3) yourself when the builder's pass was same-family or missing. Missing states without a written reason count as findings.

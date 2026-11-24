@@ -21,7 +21,7 @@ Role: Builder. The lead coordinates, integrates and reports, and never writes th
 2. **Restate**: open the progress file with the operator's goal in your own words. Every worker kickoff repeats it.
 3. **Kick off each batch** with a fresh worker. The kickoff contains:
    - the goal, restated;
-   - the requirement IDs, their invariants, and the plan sections for this batch;
+   - the requirement IDs, their invariants and expected values, and the plan sections for this batch;
    - the batch type and the inner playbook, from [layers.md](layers.md);
    - the files the worker may write (its owned files), and the files it must leave alone. A batch that reverses an existing behavior owns every test line and contract case that asserts the old behavior: rerun the census from the plan or request (planning.md A step 5) on the integration head first, since later batches may have added assertions. Code and tests that must change together go to one batch;
    - forbidden actions: push, merge into `main`, touching the operator's service or client data;

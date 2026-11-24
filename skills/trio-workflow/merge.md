@@ -31,4 +31,10 @@ Role: Reviewer, or whichever agent the operator authorizes. Act only on the oper
 
    Prefer the recycle bin. Delete branches against their recorded SHA so nothing else is removed by mistake.
 3. **Retro.** Turn every lesson that came up twice in this plan into a test, check, script or lock (encode lessons in structure). Record it in `00_FLOW`'s open items and schedule it into a later plan. Check the walkthrough notes: every finding classed as a convention breach, a spec gap or a bug has its structural fix landed or scheduled (see [ui-acceptance.md](ui-acceptance.md) §4).
-4. **Memory.** Keep only facts with lasting value: the `main` SHA, new conventions, the operator's decisions.
+4. **Metrics.** Append one row per plan to `METRICS.tsv` in the handoff directory, so the cost and the yield of the workflow can be compared across plans:
+   - plan; kickoff and merge dates; calendar days;
+   - stops; fix rounds; stops passed without a fix round;
+   - defects found by review (high, medium) and by the operator's walkthrough;
+   - builder and reviewer models; usage spent, or `NOT_MEASURED` where the tool keeps no record;
+   - escaped defects: found after the final `PASS`. Leave it empty at merge; a later retro or review that traces a defect to this plan fills it in, with the finder.
+5. **Memory.** Keep only facts with lasting value: the `main` SHA, new conventions, the operator's decisions.

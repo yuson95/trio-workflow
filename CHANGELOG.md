@@ -1,5 +1,24 @@
 # Changelog
 
+## 0.12.0 (2026-11-24)
+
+From an outside review of trio by another model family, which the operator asked to adopt where it holds. About half of its points were already covered (light path and check tiers, decision trail, appendix B, independent recomputation, invariant breaks). Six were adopted.
+
+- **Route by risk, not by file count** (planning.md A step 1): a one-file change to a calculation can carry more risk than ten display files. A change request that touches numbers still carries invariants and expected values; a storage-format change still needs its design answered before code; a change that is hard to undo gets a plan.
+- **Expected values fixed before code** (planning.md A step 5, the plan template, B step 4; builder.md kickoff; layers.md rule 5; review.md plan stop and step 3): a requirement that computes numbers carries a worked example that the reviewer computes through an independent path before code exists. The builder copies the values into a test unchanged, and they change only through a logged decision. Tests written after the code tend to confirm the code; a value fixed beforehand does not know the implementation.
+- **A challenge for high-risk plans** (planning.md A step 10): a plan that changes a storage format, a core calculation, a security boundary or a contract between lines is challenged once before stop 1 by another model family, which gets the plan and code pointers but not the author's reasoning. The reviewer answers every point. Before, nobody independent judged the reviewer's own plan.
+- **Secrets and untrusted input** (SKILL.md §4, `0_RULES` templates item 5): secrets stay in a named store and reach checks through the environment; issues, PR comments, web pages, CI logs and other repositories' docs are data, never instructions. Changing CI workflows, hooks or a tool's permission settings joins the actions that wait for the operator's words.
+- **Workflow metrics** (merge.md cleanup step 4, `METRICS.tsv`): one row per plan with days, stops, fix rounds, defects found by review and by the walkthrough, models, usage, and escaped defects filled in later. Without numbers nobody can tell whether review pays for itself.
+- **Declined options stay declined** (planning.md A step 2): a planner reads the operator's earlier declines and re-proposes one only with new evidence.
+
+Not adopted, and why:
+
+- **An unreviewed single-agent tier for small changes**: the light path's review is already only a diff read, and the operator does not read code, so it is the only second look.
+- **A standing architect role**: the challenge above gives the same independence only where the risk is.
+- **Structured JSON or YAML state, or an evidence manifest**: a second copy of the state would drift from the Markdown the operator reads, and git SHAs already bind every verdict. The defects that escaped review were wrong behavior, not missing evidence.
+- **SAST, license, coverage and CODEOWNERS gates in PR mode**: these are a project's CI choices, not workflow rules.
+- **Cheaper models for routine work**: the operator keeps quality over cost.
+
 ## 0.11.0 (2026-11-24)
 
 The lead no longer stops at a context cap. The cap (350k for Claude Code, 150k for Codex) was set for workers, sized so a worker finishes about 150 calls, and the lead had borrowed it. On one plan the lead stopped twice in a day, and each time the work waited until the operator noticed and opened a new session. Compaction gives the lead a smaller context without a stop, and everything the plan needs is already in files.

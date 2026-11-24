@@ -11,7 +11,7 @@ Generic process, parallel and token rules live in the trio-workflow skill (`buil
    - Heavy checks run one at a time under the lock `{{lock}}` (`scripts/heavy_lock.py`). A run with no output for 30 minutes is stopped and the lock released (`--idle-minutes`; `--watch <log>` for commands that write their own log). Workers do not wait for a busy lock: they hand back a steps file and the lead runs it (`run-steps`).
    - Final stop: discovery checks run early; acceptance checks (regression gate, recomputation, first-save replay, release build, screenshot matrix, full check) run once on the frozen candidate, each with the SHA it ran on.
 4. **Verification recipe**: path to Launch / Doctor / Drive / Evidence / Cleanup and the feature map: <…>.
-5. **Data and isolation**: data root <…>; isolated instance command <own port, own projects folder>; the operator's service: {{service}} (never touch it).
+5. **Data and isolation**: data root <…>; isolated instance command <own port, own projects folder>; the operator's service: {{service}} (never touch it); secrets: <where they live, how checks read them>; production systems: <none / read-only>.
 6. **Parallel**: worker cap 3; hotspot files: <…>.
    - Batches sized for about 100 tool calls each, split by module, test group or about 20 list items.
    - Worker lifetime: one batch, at most about 150 tool calls (wall time does not count) or the context cap (Codex 150k, Claude Code 350k; bug-fix and investigation batches 225 calls and 250k / 500k). At 80% a worker starts no new unit.

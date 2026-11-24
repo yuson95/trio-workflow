@@ -11,7 +11,7 @@ The inner layer is either pstack (poteto's agent workflow, <https://github.com/c
 
 | Concern | Outer layer (trio) | Inner layer |
 | --- | --- | --- |
-| Goal, requirement IDs, acceptance, "You see" lines, invariants | the plan file | restates them; does not redefine them |
+| Goal, requirement IDs, acceptance, "You see" lines, invariants, expected values | the plan file | restates them; does not redefine them |
 | Batch scope, owned files, forbidden actions, evidence to produce | the kickoff | obeys it |
 | How the code inside the batch is designed | — | owns it (data shape first; pstack's architect or arena when installed) |
 | Writing the code and proving it inside the batch | — | owns it |
@@ -42,7 +42,7 @@ A worker running in a tool where pstack is not installed uses the built-in rules
 **In: the kickoff** (written by the builder lead, see [builder.md](builder.md) step 3):
 
 - the goal, restated;
-- the requirement IDs, their "You see" lines and invariants;
+- the requirement IDs, their "You see" lines, invariants and expected values;
 - the **batch type** and the **inner playbook** taken from the mapping below;
 - owned files, untouched files, append-only files;
 - forbidden actions: push, PR, merge, touching the operator's service or client data;
@@ -112,7 +112,7 @@ The plan tags every requirement with a **type**. The lead copies that type and i
    - reproduce on the real surface;
    - write a failing test first when a cheap test path exists, or else a repro script, and commit it early on the batch branch so a successor starts from the same repro;
    - fix the root cause, not the symptom.
-5. **Test behavior**: assert what a user of the code can observe. Write each invariant from the kickoff as a test over varied inputs, and see it go red on a deliberately broken version before relying on it. Record the break in the handoff: the edited line, the test that went red, and that the edit was reverted.
+5. **Test behavior**: assert what a user of the code can observe. Copy each expected value from the kickoff into a test unchanged; when the code disagrees, record both in the handoff rather than editing the value. Write each invariant from the kickoff as a test over varied inputs, and see it go red on a deliberately broken version before relying on it. Record the break in the handoff: the edited line, the test that went red, and that the edit was reverted.
 6. **Drive the real surface** through the verification recipe for every "You see" line.
 7. **Performance**: measure the baseline on `main` first and explain the number. Heavy runs take the lock.
 8. **Commit** in small units, each ending in a check, in an order that reads as an argument.

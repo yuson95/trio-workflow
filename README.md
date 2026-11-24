@@ -168,9 +168,9 @@ Put the absolute path of `skills/trio-workflow/SKILL.md` into the agent's system
 | --- | --- |
 | `SKILL.md` | Entry point: roles, routing, rules, principles index, scripts |
 | `bootstrap.md` | Set up a project: handoff directory, role table, verification recipe |
-| `planning.md` | Plans and change requests, including the parallel design (ownership table, hotspots, waves) |
+| `planning.md` | Plans and change requests: routing by risk, expected values fixed before code, a challenge for high-risk plans, and the parallel design (ownership table, hotspots, waves) |
 | `review.md` | Stop reviews, re-reviews, design reviews, small changes; independence rules; verdicts bound to a commit |
-| `merge.md` | Merge, push, restart, cleanup, retro |
+| `merge.md` | Merge, push, restart, cleanup, retro, workflow metrics |
 | `builder.md` | Builder lead and workers: kickoff, integration, stalls, stops, resume, pause, token rules |
 | `layers.md` | Outer/inner contract and the pstack adapter |
 | `prs.md` | Stops and pull requests together: batch PRs with CI into `wip/<plan>`, stops for independent review, a plan PR into `main` |
