@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.11.0 (2026-11-24)
+
+The lead no longer stops at a context cap. The cap (350k for Claude Code, 150k for Codex) was set for workers, sized so a worker finishes about 150 calls, and the lead had borrowed it. On one plan the lead stopped twice in a day, and each time the work waited until the operator noticed and opened a new session. Compaction gives the lead a smaller context without a stop, and everything the plan needs is already in files.
+
+- **Lead keeps going** (builder.md token rule 1, `0_RULES` templates): where the tool compacts the context automatically, the lead lets it, then re-reads the progress file, the last rows of the decision trail and the current batches' handoffs before its next action. Only a tool that cannot compact pauses at its cap and continues through Resume.
+- **Workers unchanged**: they still hand over at the lifetime in rule 8.
+
 ## 0.10.0 (2026-11-23)
 
 Use each usage window fully. What is left when a window resets expires, so holding back never buys more work in a window; it only moves work later. The guard's old defaults (one worker below 30% left, pause below 10%) looked only at the percent left. A builder paused at 4% of its weekly window with a day and a half to the reset, and a lead held back parallel batches to wait for a 5-hour reset. Both times the operator overrode it ("use the quota fully").

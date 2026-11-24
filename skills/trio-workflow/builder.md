@@ -95,7 +95,7 @@ Use this when the operator pastes the resume prompt or says "continue <plan>". I
 5. **Verify inherited claims** on the real artifact before you build on them. A passing self-report from the previous session is not proof.
 6. Continue from step 3 of the main steps. Step 4 (start with one unit) applies only if no batch has been integrated yet.
 
-## Pause (on an explicit pause, going offline, an imminent context limit, or a `PAUSE` from the usage guard)
+## Pause (on an explicit pause, going offline, a context limit the tool cannot compact, or a `PAUSE` from the usage guard)
 
 1. Finish the current atomic step or back out of it. Start nothing new, and stop running workers.
 2. Take no irreversible action to pause.
@@ -109,7 +109,7 @@ Use this when the operator pastes the resume prompt or says "continue <plan>". I
 
 Every model call resends the whole context of the agent that makes it. A call at 400k tokens of context costs about twice one at 200k, and a message costs two calls: one to send, one to wake the receiver. Rules 8 to 10 keep contexts small and calls few.
 
-1. One lead session per plan. When the lead's own context passes the cap for its tool in rule 8, it pauses and continues in a fresh session through Resume. When the builder tool changes mid-plan, update the caps in `0_RULES` to the new tool's row. Where the lead cannot open a session itself, it writes the resume prompt into the progress file and asks the operator once: a fresh session, or continue here. Workers are disposable; the lead keeps only handoffs and summaries.
+1. One lead session per plan. The lead does not stop at a context cap: where its tool compacts the context automatically, it lets the tool compact, then re-reads the progress file, the last rows of the decision trail and the current batches' handoffs before its next action. State lives in files, so compaction loses nothing the plan needs, and a pause would only leave the work waiting for the operator. Only a tool that cannot compact pauses at its cap in rule 8 and continues in a fresh session through Resume; where the lead cannot open that session itself, it writes the resume prompt into the progress file and asks the operator once. When the builder tool changes mid-plan, update the caps in `0_RULES` to the new tool's row. Workers keep the lifetime in rule 8; the lead keeps only handoffs and summaries.
 2. A batch handoff is at most 30 lines and is saved as `batch-notes/<batch>_HANDOFF.md`. The next worker reads only that handoff.
 3. The progress file is at most 60 lines. After compaction or a break, read it first.
 4. Read `CURRENT_STATUS.md` first; open history files by name, only when needed.

@@ -3,7 +3,7 @@ name: trio-workflow
 description: Trio workflow. An operator decides, a reviewer agent plans and gives independent verdicts at stops, and a builder agent builds in batches with evidence; any agents can take the roles. Use it to set up a project, draft a plan or change request, review a stop, design or small change ("审查…停点N", "复审", "看一下设计", "看一下小改"), merge or clean up ("合并并推送", "只合并不推送", "做收尾"), or run, resume or pause a builder, with or without pull requests.
 license: MIT
 metadata:
-  version: "0.10.0"
+  version: "0.11.0"
   repository: https://github.com/yuson95/trio-workflow
 ---
 

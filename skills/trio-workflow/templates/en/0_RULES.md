@@ -15,7 +15,7 @@ Generic process, parallel and token rules live in the trio-workflow skill (`buil
 6. **Parallel**: worker cap 3; hotspot files: <…>.
    - Batches sized for about 100 tool calls each, split by module, test group or about 20 list items.
    - Worker lifetime: one batch, at most about 150 tool calls (wall time does not count) or the context cap (Codex 150k, Claude Code 350k; bug-fix and investigation batches 225 calls and 250k / 500k). At 80% a worker starts no new unit.
-   - Lead: one session per plan; past its tool's context cap above it renews through Pause and Resume. When the builder tool changes, update these caps.
+   - Lead: one session per plan. It does not stop at the context cap: the tool compacts, and the lead re-reads the progress file before its next action. Only a tool that cannot compact renews through Pause and Resume at the cap above. When the builder tool changes, update these caps.
    - Usage (`scripts/usage_guard.py`): use each window fully; pause below 3% left and resume after the reset. Reserve band (one worker below `--reduce-below`): none <or a percent, and why>; waived within 24 hours of the reset.
 7. **UI conventions document**: <path>.
 8. **Project-specific rules**: formatting, provenance, path rules, guard tests.
