@@ -182,7 +182,7 @@ Put the absolute path of `skills/trio-workflow/SKILL.md` into the agent's system
 | `scripts/log_decision.py` | Appends one row to a plan's decision trail |
 | `scripts/check_plan.py` | Checks a plan's structure (types, "You see" lines, invariants, verification, prototypes for review-gated items, defaults, file ownership) |
 | `scripts/screenshot_sheet.py` | Builds the page × state contact sheet, `main` beside the candidate |
-| `scripts/usage_guard.py` | Before a fan-out, turns the usage left into `FULL` (until a 3% reserve) or `PAUSE`, and `ONE_WORKER` only in a reserve band you set, waived near the reset; reads Codex's own record or numbers you give; `--threads` lists each worker's context |
+| `scripts/usage_guard.py` | Before a fan-out, turns the usage left in each window into `FULL` (until a 3% reserve, or 0.1% within 24 hours of that window's reset) or `PAUSE`, and `ONE_WORKER` only in a reserve band you set, waived near the reset; reads Codex's own record or numbers you give; `--threads` lists each worker's context |
 | `agents/openai.yaml` | Display name and short description for Codex |
 | `LICENSE` | MIT, so every installed copy keeps the notice |
 

@@ -4,9 +4,14 @@
 Agent subscriptions meter usage in windows (a 5-hour window, a weekly window). What is
 left when a window resets expires, so holding back never buys more work in a window:
 it only moves work later. The guard therefore runs at full speed until a small reserve
-(--pause-below, default 3%) that lets the lead stop cleanly: commit wip, update the
-handoff and the progress file. The lead runs this before every fan-out and at every
-integration, and follows the verdict:
+(--pause-below, default 3%) that lets the lead stop cleanly (commit wip, update the
+handoff and the progress file) and leaves the operator and the reviewer some use of a
+window they share. Within --near-hours (default 24) of a window's reset that reserve
+would expire anyway, so there the guard pauses only below --pause-near (default 0.1%).
+A 5-hour window always resets within that time and runs down to 0.1%; a weekly window
+keeps its 3% until its last day. Each window is judged on its own, and the strictest
+verdict counts. The lead runs this before every fan-out and at every integration, and
+follows the verdict:
 
   FULL        run up to the worker cap in 0_RULES
   ONE_WORKER  run one batch at a time; start no parallel batches
@@ -14,18 +19,19 @@ integration, and follows the verdict:
 
 ONE_WORKER appears only in a reserve band that a project sets with --reduce-below, for
 example to keep quota for a reviewer who shares the window. Near the reset the band is
-waived, because what it would keep expires anyway: give --resets-in (hours until the
-window resets) and the band does not apply within --near-hours (default 24).
+waived too, because what it would keep expires anyway: give --resets-in (hours until
+the window resets) and the band does not apply within --near-hours.
 
 Usage:
-  usage_guard.py [--reduce-below PCT] [--pause-below PCT]                 # read Codex's own record
-  usage_guard.py --left PCT [--resets-in HOURS] [--reduce-below PCT] [--pause-below PCT]
+  usage_guard.py [--reduce-below PCT] [--pause-below PCT] [--pause-near PCT]   # read Codex's own record
+  usage_guard.py --left PCT --resets-in HOURS [--left PCT --resets-in HOURS]  # one pair per window
   usage_guard.py --threads [--cap TOKENS] [--active-minutes MIN]          # also list each live thread
 
 Without --left, the script reads the newest rate-limit reading that Codex writes into
 its session logs ($CODEX_HOME/sessions, default ~/.codex/sessions), including the time
 each window resets. Other tools keep no such record on disk: take the percent left and
-the reset time from the tool's usage page, for the window with the least left.
+the hours until the reset from the tool's usage page, one --left and --resets-in pair
+per window, in the same order. A --left without --resets-in keeps the 3% reserve.
 
 --threads adds one line per Codex thread active in the last --active-minutes: its agent
 path, its current context (the input size of its last call) and its call count. NEAR
@@ -45,6 +51,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 FULL, USAGE, ONE_WORKER, PAUSE, UNKNOWN = 0, 2, 3, 4, 5
+RANK = {FULL: 0, ONE_WORKER: 1, PAUSE: 2}
 TAIL_BYTES = 2 * 1024 * 1024
 RECENT_DAYS = 7
 TIMESTAMP = re.compile(r'"timestamp":\s*"([^"]+)"')
@@ -165,26 +172,48 @@ def live_threads(codex_home, active_minutes, now=None):
     return sorted(found, key=lambda item: -item[1])
 
 
-def verdict(left, reduce_below, pause_below, resets_in=None, near_hours=24.0):
-    """Return (label, exit code, note). The reserve band is waived within near_hours of the reset."""
-    if left < pause_below:
+def _pct(left):
+    return f"{left:.0f}" if left >= 1 else f"{left:.1f}"
+
+
+def verdict(left, reduce_below, pause_below, resets_in=None, near_hours=24.0, pause_near=0.1):
+    """Return (label, exit code, note) for one window.
+
+    Within near_hours of the window's reset its reserve would expire anyway: the pause line
+    drops from pause_below to pause_near, and the reserve band does not apply.
+    """
+    near = resets_in is not None and resets_in <= near_hours
+    if left < (pause_near if near else pause_below):
         return "PAUSE", PAUSE, ""
+    if near and left < pause_below:
+        return "FULL", FULL, (f"pause reserve waived: the window resets in {resets_in:.1f} h; "
+                              f"pausing only below {pause_near:g}%")
     if left < reduce_below:
-        if resets_in is not None and resets_in <= near_hours:
+        if near:
             return "FULL", FULL, f"reserve band waived: the window resets in {resets_in:.1f} h"
         return "ONE_WORKER", ONE_WORKER, ""
     return "FULL", FULL, ""
 
 
+def _strictest(results):
+    """The most severe verdict; on a tie, the window with the least left."""
+    return max(results, key=lambda item: (RANK[item[1]], -item[3]))
+
+
 def main(argv=None):
     _utf8_output()
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("--left", type=float, help="percent of the usage window left, as the tool shows it")
-    parser.add_argument("--resets-in", type=float, help="hours until the window with the least left resets")
+    parser.add_argument("--left", type=float, action="append",
+                        help="percent of a usage window left, as the tool shows it; repeat once per window")
+    parser.add_argument("--resets-in", type=float, action="append",
+                        help="hours until that window resets; one per --left, in the same order")
     parser.add_argument("--reduce-below", type=float,
                         help="percent left below which only one worker runs (a reserve band; default: none)")
     parser.add_argument("--pause-below", type=float, default=3.0, help="percent left below which the builder pauses")
-    parser.add_argument("--near-hours", type=float, default=24.0, help="within this many hours of the reset the reserve band is waived")
+    parser.add_argument("--pause-near", type=float, default=0.1,
+                        help="pause line within --near-hours of the window's reset (the reserve would expire anyway)")
+    parser.add_argument("--near-hours", type=float, default=24.0,
+                        help="within this many hours of a window's reset its reserve and reserve band are waived")
     parser.add_argument("--codex-home", default=os.environ.get("CODEX_HOME") or str(Path.home() / ".codex"))
     parser.add_argument("--threads", action="store_true", help="also list each live Codex thread and its context")
     parser.add_argument("--cap", type=int, default=150_000, help="context in tokens above which a thread is marked OVER")
@@ -193,14 +222,17 @@ def main(argv=None):
     args = parser.parse_args(argv)
     if args.reduce_below is None:
         args.reduce_below = args.pause_below
-    if not 0 <= args.pause_below <= args.reduce_below <= 100:
-        print("USAGE error: need 0 <= --pause-below <= --reduce-below <= 100")
+    if not 0 <= args.pause_near <= args.pause_below <= args.reduce_below <= 100:
+        print("USAGE error: need 0 <= --pause-near <= --pause-below <= --reduce-below <= 100")
         return USAGE
-    if args.left is not None and not 0 <= args.left <= 100:
+    if args.left is not None and not all(0 <= left <= 100 for left in args.left):
         print("USAGE error: --left must be between 0 and 100")
         return USAGE
-    if (args.resets_in is not None and args.resets_in < 0) or args.near_hours < 0:
+    if (args.resets_in is not None and any(hours < 0 for hours in args.resets_in)) or args.near_hours < 0:
         print("USAGE error: --resets-in and --near-hours must be 0 or more")
+        return USAGE
+    if args.left is not None and args.resets_in is not None and len(args.resets_in) != len(args.left):
+        print("USAGE error: give one --resets-in per --left, in the same order, or none")
         return USAGE
     if not 0 < args.soft <= 1:
         print("USAGE error: --soft must be above 0 and at most 1")
@@ -219,11 +251,17 @@ def main(argv=None):
 
 
 def _usage_line(args):
-    """Print the usage verdict line and return its exit code."""
+    """Print the verdict line of the strictest window and return its exit code."""
     if args.left is not None:
-        name, code, note = verdict(args.left, args.reduce_below, args.pause_below, args.resets_in, args.near_hours)
-        reset = f"; resets in {args.resets_in:.1f} h" if args.resets_in is not None else ""
-        print(f"USAGE {name}: {args.left:.0f}% left (given by the operator{reset})")
+        results = []
+        for left, resets_in in zip(args.left, args.resets_in or [None] * len(args.left)):
+            label, code, note = verdict(left, args.reduce_below, args.pause_below, resets_in,
+                                        args.near_hours, args.pause_near)
+            results.append((label, code, note, left, resets_in))
+        label, code, note, left, resets_in = _strictest(results)
+        reset = f"; resets in {resets_in:.1f} h" if resets_in is not None else ""
+        several = f"; strictest of {len(results)} windows" if len(results) > 1 else ""
+        print(f"USAGE {label}: {_pct(left)}% left (given by the operator{reset}{several})")
         if note:
             print(f"  note: {note}")
         return code
@@ -235,26 +273,27 @@ def _usage_line(args):
         return UNKNOWN
     stamp, windows = reading
     now = datetime.now(timezone.utc)
-    worst = None
     notes = []
+    results = []
     for name, used, minutes, resets_at in windows:
         left = 100.0 - used
         if resets_at and datetime.fromtimestamp(resets_at, timezone.utc) <= now:
             notes.append(f"{name} window has reset since this reading")
             left = 100.0
-        if worst is None or left < worst[1]:
-            worst = (name, left, minutes, resets_at)
-    name, left, minutes, resets_at = worst
-    resets_in = args.resets_in
-    if resets_in is None and resets_at:
-        resets_in = max((datetime.fromtimestamp(resets_at, timezone.utc) - now).total_seconds() / 3600, 0.0)
-    label, code, note = verdict(left, args.reduce_below, args.pause_below, resets_in, args.near_hours)
+        if resets_at:
+            resets_in = max((datetime.fromtimestamp(resets_at, timezone.utc) - now).total_seconds() / 3600, 0.0)
+        else:
+            resets_in = args.resets_in[0] if args.resets_in else None
+        label, code, note = verdict(left, args.reduce_below, args.pause_below, resets_in,
+                                    args.near_hours, args.pause_near)
+        results.append((label, code, note, left, (minutes, resets_at)))
+    label, code, note, left, (minutes, resets_at) = _strictest(results)
     if note:
         notes.append(note)
     age_min = (now - stamp).total_seconds() / 60
     reset = datetime.fromtimestamp(resets_at).strftime("%Y-%m-%d %H:%M") if resets_at else "unknown"
     span = f"{minutes / 1440:.0f}-day" if minutes and minutes >= 1440 else f"{minutes or '?'}-minute"
-    print(f"USAGE {label}: {left:.0f}% left in the Codex {span} window (reading {age_min:.0f} min old; resets {reset})")
+    print(f"USAGE {label}: {_pct(left)}% left in the Codex {span} window (reading {age_min:.0f} min old; resets {reset})")
     for note in notes:
         print(f"  note: {note}")
     return code

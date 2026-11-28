@@ -393,7 +393,9 @@ def _codex_row(stamp, used_percent, resets_at, secondary=None):
 class UsageGuardTests(unittest.TestCase):
     """The guard reads Codex's newest rate-limit reading and turns it into FULL / ONE_WORKER / PAUSE.
 
-    Default: full speed until 3% left. ONE_WORKER only inside a reserve band a project sets, waived near the reset.
+    Default: full speed until 3% left; within 24 hours of a window's reset, until 0.1% left. Each window is
+    judged on its own and the strictest verdict counts. ONE_WORKER only inside a reserve band a project sets,
+    waived near the reset.
     """
 
     def setUp(self):
@@ -447,7 +449,32 @@ class UsageGuardTests(unittest.TestCase):
         self.assertIn("resets in 6.0 h", near.stdout)
         self.assertIn("reserve band waived", near.stdout)
         self.assertEqual(self.guard("--left", "20").returncode, 0)
-        self.assertEqual(self.guard("--left", "2", "--resets-in", "1").returncode, 4)
+        self.assertEqual(self.guard("--left", "2", "--resets-in", "48").returncode, 4)
+        last_day = self.guard("--left", "2", "--resets-in", "1")
+        self.assertEqual(last_day.returncode, 0, last_day.stdout)
+        self.assertIn("pause reserve waived: the window resets in 1.0 h; pausing only below 0.1%", last_day.stdout)
+        self.assertEqual(self.guard("--left", "0.05", "--resets-in", "1").returncode, 4)
+
+    def test_operator_windows_are_judged_one_by_one(self):
+        # 5-hour window nearly empty but resetting in 3 h; weekly window at 2.5% with three days to go
+        tight = self.guard("--left", "2", "--resets-in", "3", "--left", "2.5", "--resets-in", "72")
+        self.assertEqual(tight.returncode, 4, tight.stdout)
+        self.assertIn("USAGE PAUSE: 2% left (given by the operator; resets in 72.0 h; strictest of 2 windows)", tight.stdout)
+        roomy = self.guard("--left", "2", "--resets-in", "3", "--left", "40", "--resets-in", "72")
+        self.assertEqual(roomy.returncode, 0, roomy.stdout)
+        self.assertEqual(self.guard("--left", "2", "--left", "40", "--resets-in", "3").returncode, 2)
+
+    def test_codex_five_hour_window_runs_down_to_the_floor(self):
+        soon = int(time.time()) + 2 * 3600
+        five_hour = {"used_percent": 99.0, "window_minutes": 300, "resets_at": soon}
+        self.write_session("s.jsonl", [_codex_row("2026-11-18T11:00:00Z", 50.0, self.future, five_hour)], time.time())
+        result = self.guard()
+        self.assertEqual(result.returncode, 0, result.stdout)
+        self.assertIn("pause reserve waived", result.stdout)
+        self.write_session("s.jsonl", [_codex_row("2026-11-18T12:00:00Z", 98.0, self.future, five_hour)], time.time())
+        weekly = self.guard()
+        self.assertEqual(weekly.returncode, 4, weekly.stdout)
+        self.assertIn("2% left in the Codex 7-day window", weekly.stdout)
 
     def test_the_tighter_of_two_windows_counts(self):
         secondary = {"used_percent": 98.0, "window_minutes": 300, "resets_at": self.future}
@@ -473,6 +500,7 @@ class UsageGuardTests(unittest.TestCase):
     def test_thresholds_are_validated(self):
         self.assertEqual(self.guard("--left", "50", "--reduce-below", "10", "--pause-below", "20").returncode, 2)
         self.assertEqual(self.guard("--left", "150").returncode, 2)
+        self.assertEqual(self.guard("--left", "50", "--pause-near", "5").returncode, 2)
         self.assertEqual(self.guard("--left", "50", "--resets-in", "-1").returncode, 2)
 
 

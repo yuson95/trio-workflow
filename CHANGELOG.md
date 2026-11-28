@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.13.0 (2026-11-28)
+
+A reserve is worth keeping only while it has a use. The 3% pause line lets the lead stop cleanly and leaves the operator and the reviewer some use of a window they share; a weekly window that runs dry locks everyone out for days. Within a day of a window's reset, though, the reserve expires unused. The operator asked to run each window down to 0.1%, then chose to keep the 3% where a long wait would follow.
+
+- **Pause line per window** (`usage_guard.py`, builder.md token rule 10, `0_RULES` templates): 3% left as before, but within `--near-hours` (24) of a window's reset only below `--pause-near` (default 0.1%). A 5-hour window always resets within that time and runs down to 0.1%; a weekly window keeps its 3% until its last day.
+- **Each window judged on its own**: the strictest verdict counts. Before, the guard took the window with the least left, so a nearly empty 5-hour window that resets in an hour could hide a weekly window at 2.5% with days to go. Operators pass one `--left` and `--resets-in` pair per window; a `--left` without `--resets-in` keeps the 3% reserve.
+
 ## 0.12.0 (2026-11-24)
 
 From an outside review of trio by another model family, which the operator asked to adopt where it holds. About half of its points were already covered (light path and check tiers, decision trail, appendix B, independent recomputation, invariant breaks). Six were adopted.
